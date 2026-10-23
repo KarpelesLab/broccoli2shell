@@ -128,6 +128,9 @@ ol.timeline li::before {
 ol.timeline time { font: 600 13px var(--mono); color: var(--muted); display: block; }
 footer { margin-top: 48px; padding: 28px 0 48px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
 .refs li { word-break: break-word; }
+blockquote { margin: 16px 0; padding: 14px 18px; border-left: 4px solid var(--accent); background: var(--surface); border-radius: 0 8px 8px 0; }
+blockquote p { margin: 0 0 6px; font-size: 1.05rem; }
+blockquote footer { color: var(--muted); font-size: 14px; }
 </style>
 </head>
 <body>
@@ -316,6 +319,15 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><time>2026-10-22</time>NVD publishes CVE-2026-111497. GHSA-9v8h-qqgm-4m35 goes live, Brotli 1.2.1 reaches PyPI, Imperva publishes its "Node2Shell" research, and a public PoC appears.</li>
     <li><time>2026-10-23</time>brotlicffi 1.2.1.0 reaches PyPI. Researchers publish the Python impact analysis, and GHSA is updated to list the PyPI packages.</li>
   </ol>
+</section>
+
+<section id="name">
+  <h2>Why "Broccoli"?</h2>
+  <p>Imperva's research called it "Node2Shell", but the bug is in Brotli itself and reaches well beyond Node.js. Security researcher Juliano Rizzo <a href="https://x.com/julianor/status/2113746351817216068">proposed a better name</a>:</p>
+  <blockquote cite="https://x.com/julianor/status/2113746351817216068">
+    <p>IMHO, the Brotli bug (think zlib 20 years ago) is a bigger deal than PHP2Shell […] Node2Shell is a terrible name. I'm calling it Broccoli.</p>
+    <footer>— Juliano Rizzo (@julianor)</footer>
+  </blockquote>
 </section>
 
 <section id="credits">
