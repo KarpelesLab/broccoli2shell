@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Broccoli2Shell — CVE-2026-111497</title>
+<meta name="description" content="CVE-2026-111497: an out-of-bounds write in Google's Brotli decoder that affects Node.js, Python and anything else that bundles the C decoder. Who is affected, how to check, and how to fix it.">
+<meta property="og:title" content="Broccoli2Shell — CVE-2026-111497">
+<meta property="og:description" content="A Brotli decoder bug reaches Node.js, Python and more. Affected versions, checks and fixes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://broccoli2shell.com/">
+<meta name="theme-color" content="#0f1a12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥦</text></svg>">
+<style>
+:root {
+  --bg: #f6f8f4;
+  --surface: #ffffff;
+  --text: #17201a;
+  --muted: #56645a;
+  --border: #d9e2d6;
+  --accent: #2f7d32;
+  --accent-soft: #e3f1e1;
+  --danger: #b3261e;
+  --danger-soft: #fbe7e5;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --code-bg: #eef3ec;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c140e;
+    --surface: #121d15;
+    --text: #e4ece3;
+    --muted: #9aab9c;
+    --border: #253629;
+    --accent: #7bc67e;
+    --accent-soft: #18301b;
+    --danger: #ff8a80;
+    --danger-soft: #3a1714;
+    --warn: #f2c063;
+    --warn-soft: #33270f;
+    --code-bg: #0a110c;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 var(--sans);
+}
+a { color: var(--accent); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+header.hero { padding: 56px 0 32px; border-bottom: 1px solid var(--border); }
+.eyebrow {
+  font: 600 13px/1 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--danger);
+}
+h1 {
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  line-height: 1.05;
+  margin: 14px 0 12px;
+  letter-spacing: -.02em;
+}
+h1 .b { color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 24px; max-width: 46em; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.facts li {
+  font: 13px/1 var(--mono);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.facts li strong { color: var(--danger); font-weight: 600; }
+nav.toc { margin: 24px 0 0; font-size: 14px; }
+nav.toc a { margin-right: 14px; white-space: nowrap; }
+section { padding: 36px 0 8px; }
+h2 { font-size: 1.5rem; margin: 0 0 14px; letter-spacing: -.01em; }
+h3 { font-size: 1.1rem; margin: 26px 0 8px; }
+p, li { max-width: 48em; }
+.callout {
+  border-left: 4px solid var(--danger);
+  background: var(--danger-soft);
+  padding: 14px 18px;
+  border-radius: 0 8px 8px 0;
+  margin: 18px 0;
+}
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.ok { border-color: var(--accent); background: var(--accent-soft); }
+.callout p { margin: 0; }
+.callout p + p { margin-top: 8px; }
+code { font: .9em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre {
+  font: 13.5px/1.55 var(--mono);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 10px 0 18px;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+pre .c { color: var(--muted); }
+.table-wrap { overflow-x: auto; margin: 12px 0 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; }
+tr:last-child td { border-bottom: 0; }
+td.fix { color: var(--accent); font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+td.bad { color: var(--danger); font-family: var(--mono); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 16px 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.card h3 { margin-top: 0; }
+.card p { margin: 0; font-size: 15px; color: var(--muted); }
+ol.timeline { list-style: none; padding: 0; margin: 12px 0; border-left: 2px solid var(--border); }
+ol.timeline li { padding: 0 0 14px 18px; position: relative; }
+ol.timeline li::before {
+  content: ""; position: absolute; left: -7px; top: 7px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--bg);
+}
+ol.timeline time { font: 600 13px var(--mono); color: var(--muted); display: block; }
+footer { margin-top: 48px; padding: 28px 0 48px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+.refs li { word-break: break-word; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">CVE-2026-111497 · GHSA-9v8h-qqgm-4m35</div>
+    <h1><span class="b">Broccoli</span>2Shell</h1>
+    <p class="lede">An out-of-bounds write in Google's Brotli decoder. Any program that decompresses Brotli data an attacker controls can crash, leak memory, or run the attacker's code. Node.js and Python's <code>Brotli</code>/<code>brotlicffi</code> packages are confirmed affected. So is anything else that ships the C decoder from Brotli 1.0.3 through 1.2.0.</p>
+    <ul class="facts">
+      <li>CVSS 4.0: <strong>9.2 Critical</strong> (GHSA)</li>
+      <li>Node.js rating: <strong>High</strong></li>
+      <li>CWE-252 · CWE-787</li>
+      <li>Disclosed: 2026-10-21</li>
+    </ul>
+    <nav class="toc" aria-label="Contents">
+      <a href="#tldr">TL;DR</a>
+      <a href="#bug">The bug</a>
+      <a href="#node">Node.js</a>
+      <a href="#python">Python</a>
+      <a href="#other">Other software</a>
+      <a href="#check">Check</a>
+      <a href="#mitigate">Mitigate</a>
+      <a href="#exploit">Exploitation</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#refs">References</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="tldr">
+  <h2>TL;DR</h2>
+  <div class="callout">
+    <p><strong>Upgrade now if you decompress Brotli from anywhere you don't control.</strong> That includes HTTP responses: <code>fetch()</code> in Node.js and <code>requests</code>/<code>urllib3</code> in Python decode <code>Content-Encoding: br</code> responses automatically.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Component</th><th>Vulnerable</th><th>Fixed in</th></tr></thead>
+      <tbody>
+        <tr><td>Google Brotli (C library)</td><td class="bad">1.0.3 – 1.2.0</td><td class="fix">1.0.10 · 1.1.1 · 1.2.1</td></tr>
+        <tr><td>Node.js 26.x</td><td class="bad">&lt; 26.12.1</td><td class="fix">26.12.1</td></tr>
+        <tr><td>Node.js 24.x</td><td class="bad">&lt; 24.22.1</td><td class="fix">24.22.1</td></tr>
+        <tr><td>Node.js 22.x</td><td class="bad">&lt; 22.23.4</td><td class="fix">22.23.4</td></tr>
+        <tr><td>Node.js 25.x, 23.x, 20.x and older</td><td class="bad">End of life</td><td>No fix. Move to 22, 24 or 26.</td></tr>
+        <tr><td>PyPI <code>Brotli</code></td><td class="bad">1.0.3 – 1.2.0</td><td class="fix">1.2.1</td></tr>
+        <tr><td>PyPI <code>brotlicffi</code></td><td class="bad">1.0.3 – 1.2.0.x</td><td class="fix">1.2.1.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Upgrading on disk is not enough. A running process keeps the old decoder until it restarts. A container keeps it until you rebuild the image on a patched base and redeploy it.</p>
+</section>
+
+<section id="bug">
+  <h2>The bug</h2>
+  <p>A Brotli stream is split into blocks, and the decoder changes block types as it reads them. Before the fix, <code>DecodeBlockTypeAndLength()</code> in <code>c/dec/decode.c</code> returned a plain boolean. That meant callers could not tell a malformed stream from one that just needed more input. On the fast path, the return value was ignored altogether.</p>
+  <p>A crafted stream can request a block switch that cannot happen. The decoder took that as "need more input", so the streaming decoder kept adding attacker bytes to an eight-byte internal buffer and wrote past its end. The overwrite corrupts nearby decoder state, which is how a decompression error can become memory disclosure or code execution.</p>
+  <p>The upstream fix (google/brotli commit <code>0ed4268</code>, plus <code>50a9b70</code>, <code>b418fa8</code> and <code>da98063</code>) makes the decoder return a hard format error, <code>BROTLI_DECODER_ERROR_FORMAT_BLOCK_SWITCH</code> (−17), and pass it back to the caller.</p>
+</section>
+
+<section id="node">
+  <h2>Node.js</h2>
+  <p>Node.js bundles its own copy of the Brotli decoder, so your operating system's <code>libbrotli</code> doesn't matter here. Only the Node.js version does. Node.js runs the decoder when:</p>
+  <div class="grid">
+    <div class="card">
+      <h3>Outbound: <code>fetch()</code></h3>
+      <p>The built-in <code>fetch()</code> (undici) decodes responses that arrive with <code>Content-Encoding: br</code>. Any server your app talks to can deliver the payload. That includes webhooks, link previews, scrapers and anything built around "fetch this URL".</p>
+    </div>
+    <div class="card">
+      <h3>Inbound: request bodies</h3>
+      <p>Express 5.0.0–5.3.0 and body-parser 2.0.0–2.3.0 inflate Brotli request bodies in their parsers (for example <code>raw()</code> and <code>json()</code>). A bare <code>node:http</code> server does not decode bodies on its own.</p>
+    </div>
+    <div class="card">
+      <h3>Direct: <code>node:zlib</code></h3>
+      <p><code>zlib.brotliDecompress*()</code>, <code>createBrotliDecompress()</code> and any library that calls them on uploads, archives, caches or message queues.</p>
+    </div>
+  </div>
+  <p>Express and body-parser don't contain the bug. They only give attackers a way to reach it. Upgrading them won't help. Upgrading Node.js will.</p>
+  <p>The same release (2026-10-21) fixed nine other CVEs, including three more rated High in TLS and DNS. See the <a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases">Node.js advisory</a>.</p>
+</section>
+
+<section id="python">
+  <h2>Python</h2>
+  <p>The PyPI packages <code>Brotli</code> and <code>brotlicffi</code> compile the same C decoder. <strong>Your code doesn't have to import them.</strong> If either one is installed, common HTTP clients use it automatically:</p>
+  <ul>
+    <li><strong>urllib3, and therefore requests</strong>, sends <code>Accept-Encoding: br</code> and decodes Brotli responses whenever either package is installed.</li>
+    <li><strong>aiohttp</strong> uses Brotli if it's installed.</li>
+    <li><strong>httpx</strong> uses it through the <code>httpx[brotli]</code> extra.</li>
+    <li><strong>Scrapy</strong> and other crawlers. Some versions pull Brotli in as a dependency.</li>
+    <li><strong>Web frameworks or middleware</strong> that decode <code>Content-Encoding: br</code> request bodies.</li>
+  </ul>
+  <div class="callout warn">
+    <p>Scanners may report nothing for a while. When this was published, pip-audit, Dependabot and Safety didn't reliably flag the vulnerable PyPI versions, because the CVE record names the upstream Google repo rather than the PyPI packages. GHSA now lists both packages (PYSEC-2026-4322, PYSEC-2026-4323). Check manually anyway.</p>
+  </div>
+  <p>If your Brotli bindings come from your Linux distribution (for example <code>python3-brotli</code>) rather than from PyPI, the fix will come through your distribution's security updates.</p>
+</section>
+
+<section id="other">
+  <h2>Everything else</h2>
+  <p>The bug is in the reference C decoder, not in Node.js or Python. Anything that ships or links that decoder from Brotli 1.0.3 through 1.2.0 is a candidate, even if no advisory names it yet:</p>
+  <ul>
+    <li><strong>The system library</strong> (<code>libbrotlidec</code>, packaged as <code>libbrotli1</code>, <code>brotli</code> and similar). Programs that link it dynamically are fixed when your distribution ships a patched package and you restart them. Statically linked or vendored copies need their own rebuild.</li>
+    <li><strong>Language bindings that wrap the C code</strong>, such as Java JNI wrappers, PHP and Ruby extensions, and Go cgo bindings. Check each one for a release that bundles 1.0.10, 1.1.1 or 1.2.1.</li>
+    <li><strong>Proxies, CDNs, HTTP clients and archive tools</strong> that decode <code>br</code> content using the C library.</li>
+  </ul>
+  <div class="callout warn">
+    <p><strong>Not yet confirmed:</strong> independent ports and translations of the decoder, such as pure Go, Rust, Java, Kotlin and JavaScript implementations. No public analysis says whether they carry the same logic error. Watch the vendor advisories, and treat the C-backed builds as affected until a fix is shipped.</p>
+  </div>
+</section>
+
+<section id="check">
+  <h2>Am I affected?</h2>
+  <h3>Node.js</h3>
+<pre><code>node --version
+<span class="c"># vulnerable if below 22.23.4 / 24.22.1 / 26.12.1, or on any EOL line</span>
+
+<span class="c"># inside a container image</span>
+docker run --rm --entrypoint node &lt;image&gt; --version
+
+<span class="c"># the Brotli version actually bundled into this Node binary</span>
+node -p "process.versions.brotli"</code></pre>
+  <h3>Python</h3>
+<pre><code>pip show Brotli brotlicffi
+python -c "import brotli; print(brotli.__version__)"
+
+<span class="c"># what pulls it in</span>
+pipdeptree -r -p Brotli
+
+<span class="c"># lockfiles</span>
+grep -i brotli poetry.lock uv.lock requirements*.txt Pipfile.lock 2&gt;/dev/null
+
+<span class="c"># inside a container image</span>
+docker run --rm --entrypoint pip &lt;image&gt; show Brotli brotlicffi</code></pre>
+  <h3>System library</h3>
+<pre><code><span class="c"># Debian / Ubuntu</span>
+dpkg -l | grep -i brotli
+<span class="c"># RHEL / Fedora</span>
+rpm -qa | grep -i brotli
+<span class="c"># Alpine</span>
+apk info -v | grep -i brotli
+<span class="c"># which running processes have it mapped</span>
+sudo grep -l brotlidec /proc/*/maps 2&gt;/dev/null</code></pre>
+  <p>Check every place that runs code: production, staging, CI runners, build images, serverless runtimes and developer laptops. Fix the services that fetch URLs you don't control, or that accept <code>Content-Encoding: br</code> bodies, first.</p>
+</section>
+
+<section id="mitigate">
+  <h2>Fix &amp; mitigate</h2>
+  <h3>1. Upgrade (the actual fix)</h3>
+<pre><code><span class="c"># Node.js — via your version manager, base image or package source</span>
+nvm install 24.22.1          <span class="c"># or 22.23.4 / 26.12.1</span>
+<span class="c"># Dockerfile</span>
+FROM node:24.22.1-slim
+
+<span class="c"># Python</span>
+pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
+<span class="c"># then update the constraint and regenerate poetry.lock / uv.lock / requirements.txt</span></code></pre>
+  <p>Then restart every process, rebuild every image and redeploy. Bump pinned versions in lockfiles, so the next build doesn't install the old version again.</p>
+
+  <h3>2. If you can't upgrade yet</h3>
+  <ul>
+    <li><strong>Python:</strong> uninstall <code>Brotli</code> and <code>brotlicffi</code>. urllib3, requests and aiohttp fall back to gzip and deflate. Also remove extras such as <code>httpx[brotli]</code>, or the next install will bring the package back.</li>
+    <li><strong>Inbound:</strong> reject requests that carry <code>Content-Encoding: br</code> at your proxy, load balancer or WAF, before they reach the app. Several providers, including Vercel, deployed WAF rules for this inbound path on the day of disclosure.</li>
+    <li><strong>Outbound:</strong> removing <code>br</code> from <code>Accept-Encoding</code> helps less than it seems, because a malicious server can send Brotli anyway. A WAF in front of your app does nothing for responses your app fetches. Only the runtime or library upgrade protects that path.</li>
+  </ul>
+  <div class="callout ok">
+    <p>Node.js has published no workaround. For Node.js, upgrading the runtime is the only complete fix.</p>
+  </div>
+</section>
+
+<section id="exploit">
+  <h2>Exploitation status</h2>
+  <ul>
+    <li><strong>Imperva Red Team</strong> ("Node2Shell") reported running attacker-supplied code on the official, unmodified Node.js 24.22.0 Linux arm64 image. The payload arrived both as a fetched response and as an Express request body. It took several attempts, and Imperva hasn't released the exploit code.</li>
+    <li>A <strong>public proof-of-concept</strong> on GitHub (2026-10-22) reportedly reaches code execution only on a deliberately weakened build. On standard builds it causes a crash and a limited memory read.</li>
+    <li>For the Python packages, researchers confirmed the bug with AddressSanitizer: 1.2.0 accepted a crafted ~23 MB stream, and 1.2.1 rejected it with error −17. They didn't try to build an exploit.</li>
+    <li>As of 2026-10-22, no one had reported attacks using this flaw. Public PoCs make that likely to change, so patch now.</li>
+  </ul>
+</section>
+
+<section id="timeline">
+  <h2>Timeline</h2>
+  <ol class="timeline">
+    <li><time>2026-02</time>The fix is first committed to the Brotli source, according to OpenSourceMalware's analysis.</li>
+    <li><time>2026-10-21</time>Node.js releases 22.23.4, 24.22.1 and 26.12.1. Google releases Brotli 1.0.10, 1.1.1 and 1.2.1.</li>
+    <li><time>2026-10-22</time>NVD publishes CVE-2026-111497. GHSA-9v8h-qqgm-4m35 goes live, Brotli 1.2.1 reaches PyPI, Imperva publishes its "Node2Shell" research, and a public PoC appears.</li>
+    <li><time>2026-10-23</time>brotlicffi 1.2.1.0 reaches PyPI. Researchers publish the Python impact analysis, and GHSA is updated to list the PyPI packages.</li>
+  </ol>
+</section>
+
+<section id="credits">
+  <h2>Credits</h2>
+  <p>Reported to Node.js by OpenAI Codex Security (Khai Tran and Sylvie Mayer). Fixed in Node.js by Matteo Collina and Antoine du Hamel. Independent exploitation research by the Imperva Red Team (Ron Masas). Python impact analysis by OpenSourceMalware and Aikido.</p>
+</section>
+
+<section id="refs">
+  <h2>References</h2>
+  <ul class="refs">
+    <li><a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases">Node.js — October 2026 security releases</a></li>
+    <li><a href="https://github.com/advisories/GHSA-9v8h-qqgm-4m35">GitHub Advisory GHSA-9v8h-qqgm-4m35</a></li>
+    <li><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-111497">NVD — CVE-2026-111497</a></li>
+    <li><a href="https://www.cve.org/CVERecord?id=CVE-2026-111497">CVE.org record</a></li>
+    <li><a href="https://github.com/google/brotli/releases">google/brotli releases (1.0.10 / 1.1.1 / 1.2.1)</a></li>
+    <li><a href="https://www.imperva.com/blog/node2shell-from-brotli-data-to-remote-code-execution/">Imperva — Node2Shell: From Brotli Data to Remote Code Execution</a></li>
+    <li><a href="https://opensourcemalware.com/blog/node2shell-affects-python">OpenSourceMalware — Python packages vulnerable to Node2Shell</a></li>
+    <li><a href="https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497">Aikido — Python packages are also vulnerable</a></li>
+    <li><a href="https://vercel.com/kb/bulletin/node-js-security-advisory">Vercel — Node.js security advisory</a></li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Last updated 2026-10-24. This is an independent informational page, not affiliated with Google, the Node.js project or the Python Software Foundation. The vendor advisories linked above are authoritative.</p>
+  </div>
+</footer>
+
+</body>
+</html>
