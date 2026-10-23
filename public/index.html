@@ -205,7 +205,7 @@ table { border-collapse: collapse; width: 100%; font-size: 1rem; }
 caption { text-align: left; font-weight: 800; font-stretch: 85%; font-size: 1.35rem; padding-bottom: 10px; }
 th, td { text-align: left; padding: 11px 16px 11px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 thead th { font-weight: 700; font-size: .9rem; color: var(--ink-soft); border-bottom: 2px solid var(--ink); }
-tbody tr:last-child td { border-bottom: 0; }
+tbody tr:last-child > * { border-bottom: 0; }
 tbody th { font-weight: 500; }
 td.bad { color: var(--red-ink); font-weight: 600; white-space: nowrap; }
 td.fix { font-weight: 700; white-space: nowrap; }
@@ -297,15 +297,15 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
   .lede { max-width: none; }
   .sheet { padding: 22px 16px 4px; margin: 0 -16px; border-radius: 0; }
   .paths li, ol.timeline li { grid-template-columns: 1fr; gap: 4px; }
-  .sheet table, .sheet tbody, .sheet tr, .sheet th, .sheet td { display: block; }
-  .sheet thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .sheet tr { padding: 12px 0; border-bottom: 1px solid var(--rule); }
-  .sheet tbody tr:last-child { border-bottom: 0; }
-  .sheet th, .sheet td { border: 0; padding: 2px 0; white-space: normal; }
-  .sheet tbody th { font-weight: 700; font-size: 1.05rem; }
-  .sheet td::before { content: attr(data-label) ": "; color: var(--ink-soft); font-weight: 500; }
-  .sheet td.fix::before { content: attr(data-label) ": ✓ "; }
-  .sheet caption { display: block; font-size: 1.2rem; }
+  .stack table, .stack tbody, .stack tr, .stack th, .stack td { display: block; }
+  .stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .stack tr { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .stack tbody tr:last-child { border-bottom: 0; }
+  .stack th, .stack td { border: 0; padding: 2px 0; white-space: normal; }
+  .stack tbody th { font-weight: 700; font-size: 1.05rem; }
+  .stack td::before { content: attr(data-label) ": "; color: var(--ink-soft); font-weight: 500; }
+  .stack td.fix::before { content: attr(data-label) ": ✓ "; }
+  .stack caption { display: block; font-size: 1.2rem; }
 }
 </style>
 </head>
@@ -348,7 +348,7 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
     <h2 id="recall-h">Recall notice</h2>
     <p class="summary">Brotli decoder 1.0.3 through 1.2.0. An out-of-bounds write that can lead to a crash, a memory leak or remote code execution. Rated 9.2 Critical (CVSS 4.0) by GitHub, High by Node.js.</p>
     <div class="sheet">
-      <div class="table-wrap">
+      <div class="table-wrap stack">
         <table>
           <caption>Affected versions and their replacements</caption>
           <thead><tr><th scope="col">Product</th><th scope="col">Affected</th><th scope="col">Fixed in</th></tr></thead>
@@ -374,6 +374,7 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
     <a href="#bug">The bug</a>
     <a href="#python">Python</a>
     <a href="#other">Other software</a>
+    <a href="#vendored">Bundled copies</a>
     <a href="#check">Check</a>
     <a href="#fix">Fix</a>
     <a href="#exploit">Exploitation</a>
@@ -427,8 +428,35 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
     <li><strong>Proxies, CDNs, HTTP clients and archive tools</strong> that decode <code>br</code> content with the C library.</li>
   </ul>
   <div class="aside">
-    <p>Not yet confirmed: independent ports and translations of the decoder, written in Go, Rust, Java, Kotlin or JavaScript. No public analysis says whether they share the same logic error. Watch their advisories. Until then, assume any build backed by the C library is affected.</p>
+    <p>Decoders rewritten in other languages aren't a concern. The Java, JavaScript and C# ports, which pdf.js, iText and HtmlUnit use, can't reach the bug. The Go port (andybalholm/brotli) had the same logic error, but it would only have crashed, and it was fixed on 23 October. Rust's <code>brotli-decompressor</code> catches the condition and returns an error. Code execution is only possible in the C decoder.</p>
   </div>
+</section>
+
+<section id="vendored">
+  <h2 class="sec">Projects that bundle their own copy</h2>
+  <p class="measure">Many projects ship a private copy of the C decoder instead of using your system's library. A distribution update doesn't fix those: each project has to update its copy. We searched GitHub for vendored copies and read their headers on 24 October 2026. A copy is patched if it includes the new <code>BLOCK_SWITCH</code> error code.</p>
+  <div class="table-wrap stack">
+    <table>
+      <caption>Not fixed yet, as of 24 October</caption>
+      <thead><tr><th scope="col">Project</th><th scope="col">Bundled copy</th><th scope="col">Untrusted input it decodes</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a href="https://github.com/dotnet/runtime">.NET runtime</a></th><td class="bad" data-label="Bundled copy">1.1.0</td><td data-label="Decodes"><code>BrotliDecoder</code>, <code>BrotliStream</code>, and <code>HttpClient</code> automatic decompression</td></tr>
+        <tr><th scope="row"><a href="https://github.com/kjdev/php-ext-brotli">PHP brotli extension</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Apps calling <code>brotli_uncompress()</code>. A fix is in progress in <a href="https://github.com/kjdev/php-ext-brotli/pull/105">PR #105</a>.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/miyucy/brotli">Ruby <code>brotli</code> gem</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Apps calling <code>Brotli.inflate</code></td></tr>
+        <tr><th scope="row"><a href="https://github.com/duckdb/duckdb">DuckDB</a></th><td class="bad" data-label="Bundled copy">unpatched</td><td data-label="Decodes">Brotli-compressed Parquet files. A fix is in progress in <a href="https://github.com/duckdb/duckdb/pull/27791">PR #27791</a>.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/ClickHouse/ClickHouse">ClickHouse</a></th><td class="bad" data-label="Bundled copy">own fork</td><td data-label="Decodes">Brotli-compressed HTTP bodies, files and Parquet</td></tr>
+        <tr><th scope="row"><a href="https://github.com/apache/arrow">Apache Arrow</a> (bundled build)</th><td class="bad" data-label="Bundled copy">1.0.9</td><td data-label="Decodes">Brotli-compressed Parquet files</td></tr>
+        <tr><th scope="row"><a href="https://github.com/libjxl/libjxl">libjxl</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">JPEG XL images</td></tr>
+        <tr><th scope="row"><a href="https://github.com/oracle/graaljs">GraalJS (graal-nodejs)</a>, <a href="https://github.com/microsoft/v8-jsi">v8-jsi</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">The same paths as Node.js, because they're Node.js forks</td></tr>
+        <tr><th scope="row"><a href="https://github.com/M2Team/NanaZip">NanaZip</a>, <a href="https://github.com/mcmilk/7-Zip-zstd">7-Zip-zstd</a>, <a href="https://github.com/p7zip-project/p7zip">p7zip</a></th><td class="bad" data-label="Bundled copy">1.0.9 – 1.2.0</td><td data-label="Decodes">Archives and <code>.br</code> files a user opens</td></tr>
+        <tr><th scope="row"><a href="https://github.com/ArtifexSoftware/mupdf">MuPDF</a></th><td class="bad" data-label="Bundled copy">own fork</td><td data-label="Decodes">Brotli-compressed streams in documents</td></tr>
+        <tr><th scope="row"><a href="https://github.com/tianocore/edk2">EDK II</a>, <a href="https://github.com/LongSoft/UEFITool">UEFITool</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Compressed firmware sections and firmware images</td></tr>
+        <tr><th scope="row"><a href="https://github.com/ydb-platform/ydb">YDB</a></th><td class="bad" data-label="Bundled copy">1.1.0</td><td data-label="Decodes">Brotli-compressed data</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="measure"><strong>Already fixed:</strong> Node.js, Bun, Chromium, Firefox, brotlicffi, ngx_brotli, Brotli4j, SumatraPDF, Ghostscript, CatBoost and YTsaurus, as well as Gentoo, Solus and VMware Photon packages.</p>
+  <p class="measure">This list isn't complete. GitHub's code search skips submodules and some very large repositories, and private or vendored-at-build-time copies don't show up at all. A project listed here may not reach the decoder in every configuration. If you maintain one of these projects, updating to 1.0.10, 1.1.1 or 1.2.1 (or cherry-picking commit <code>0ed4268</code>) fixes it.</p>
 </section>
 
 <section id="check">
