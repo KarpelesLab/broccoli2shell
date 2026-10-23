@@ -3,259 +3,447 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Broccoli2Shell — CVE-2026-111497</title>
-<meta name="description" content="CVE-2026-111497: an out-of-bounds write in Google's Brotli decoder that affects Node.js, Python and anything else that bundles the C decoder. Who is affected, how to check, and how to fix it.">
-<meta property="og:title" content="Broccoli2Shell — CVE-2026-111497">
-<meta property="og:description" content="A Brotli decoder bug reaches Node.js, Python and more. Affected versions, checks and fixes.">
-<meta property="og:type" content="website">
+<title>Broccoli2Shell: Brotli decoder RCE (CVE-2026-111497) in Node.js, Python and more</title>
+<meta name="description" content="CVE-2026-111497 (Broccoli2Shell, aka Node2Shell): an out-of-bounds write in Google's Brotli decoder affecting Node.js, Python Brotli/brotlicffi and anything built on the C decoder. Affected versions, how to check, and how to fix it.">
+<link rel="canonical" href="https://broccoli2shell.com/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="broccoli2shell.com">
+<meta name="keywords" content="CVE-2026-111497, Brotli, Broccoli2Shell, Node2Shell, Node.js, Python, brotlicffi, GHSA-9v8h-qqgm-4m35, RCE, out-of-bounds write">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Broccoli2Shell">
 <meta property="og:url" content="https://broccoli2shell.com/">
-<meta name="theme-color" content="#0f1a12">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥦</text></svg>">
+<meta property="og:title" content="Broccoli2Shell: the Brotli decoder bug (CVE-2026-111497)">
+<meta property="og:description" content="An out-of-bounds write in Google's Brotli decoder reaches Node.js, Python and more. Affected versions, checks and fixes.">
+<meta property="og:image" content="https://broccoli2shell.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="A head of broccoli with a red produce sticker reading 4060, Broccoli, CVE-2026-111497, next to the title Broccoli2Shell">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-10-24T00:00:00Z">
+<meta property="article:modified_time" content="2026-10-24T00:00:00Z">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Broccoli2Shell: the Brotli decoder bug (CVE-2026-111497)">
+<meta name="twitter:description" content="An out-of-bounds write in Google's Brotli decoder reaches Node.js, Python and more. Affected versions, checks and fixes.">
+<meta name="twitter:image" content="https://broccoli2shell.com/og.png">
+<meta name="twitter:image:alt" content="A head of broccoli with a red produce sticker reading 4060, Broccoli, CVE-2026-111497">
+<meta name="theme-color" content="#f7f8f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#132a1c" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Broccoli2Shell: Brotli decoder out-of-bounds write (CVE-2026-111497)",
+  "alternativeHeadline": "Node2Shell",
+  "description": "CVE-2026-111497 (Broccoli2Shell, aka Node2Shell): an out-of-bounds write in Google's Brotli decoder affecting Node.js, Python Brotli/brotlicffi and anything built on the C decoder. Affected versions, how to check, and how to fix it.",
+  "url": "https://broccoli2shell.com/",
+  "image": "https://broccoli2shell.com/og.png",
+  "datePublished": "2026-10-24",
+  "dateModified": "2026-10-24",
+  "inLanguage": "en",
+  "keywords": ["CVE-2026-111497", "GHSA-9v8h-qqgm-4m35", "Brotli", "Node.js", "Python", "brotlicffi"],
+  "about": [
+    {"@type": "SoftwareApplication", "name": "Brotli", "applicationCategory": "Compression library"},
+    {"@type": "SoftwareApplication", "name": "Node.js", "applicationCategory": "Runtime"}
+  ],
+  "author": {"@type": "Organization", "name": "broccoli2shell.com", "url": "https://broccoli2shell.com/"},
+  "publisher": {"@type": "Organization", "name": "broccoli2shell.com", "url": "https://broccoli2shell.com/", "logo": {"@type": "ImageObject", "url": "https://broccoli2shell.com/icon-512.png"}},
+  "citation": ["https://nvd.nist.gov/vuln/detail/CVE-2026-111497", "https://github.com/advisories/GHSA-9v8h-qqgm-4m35", "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases"]
+}
+</script>
+<link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(/fonts/archivo-latin.woff2) format("woff2");
+}
 :root {
-  --bg: #f6f8f4;
-  --surface: #ffffff;
-  --text: #17201a;
-  --muted: #56645a;
-  --border: #d9e2d6;
-  --accent: #2f7d32;
-  --accent-soft: #e3f1e1;
-  --danger: #b3261e;
-  --danger-soft: #fbe7e5;
-  --warn: #8a5a00;
-  --warn-soft: #fbf0d9;
-  --code-bg: #eef3ec;
-  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --paper: #f7f8f2;
+  --sheet: #ffffff;
+  --ink: #173823;
+  --ink-soft: #4d6352;
+  --rule: #d6dfcb;
+  --red: #d7261e;
+  --red-ink: #b81f18;
+  --floret: #3e7b27;
+  --floret-dark: #2b5d1d;
+  --floret-light: #5b9b3a;
+  --stalk: #cfdca8;
+  --stalk-shade: #b3c486;
+  --code: #eef2e6;
+  --sans: "Archivo", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0c140e;
-    --surface: #121d15;
-    --text: #e4ece3;
-    --muted: #9aab9c;
-    --border: #253629;
-    --accent: #7bc67e;
-    --accent-soft: #18301b;
-    --danger: #ff8a80;
-    --danger-soft: #3a1714;
-    --warn: #f2c063;
-    --warn-soft: #33270f;
-    --code-bg: #0a110c;
+    --paper: #132a1c;
+    --sheet: #1a3524;
+    --ink: #e9f0df;
+    --ink-soft: #a9bca8;
+    --rule: #2e4a37;
+    --red: #e0372c;
+    --red-ink: #ff7b70;
+    --stalk: #b9c98f;
+    --stalk-shade: #97a96c;
+    --code: #0f2116;
   }
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font: 16px/1.6 var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1.0625rem/1.6 var(--sans);
+  font-stretch: 100%;
 }
-a { color: var(--accent); }
-.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
-header.hero { padding: 56px 0 32px; border-bottom: 1px solid var(--border); }
-.eyebrow {
-  font: 600 13px/1 var(--mono);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--danger);
+a { color: inherit; text-decoration-color: var(--red); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { color: var(--red-ink); }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; border-radius: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+.measure { max-width: 68ch; }
+
+/* ---------- hero ---------- */
+.hero { padding: 40px 0 56px; overflow: hidden; }
+.hero .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
 }
+.cve { font-weight: 600; color: var(--red-ink); margin: 0 0 8px; font-size: 1rem; }
 h1 {
-  font-size: clamp(2.2rem, 7vw, 3.6rem);
-  line-height: 1.05;
-  margin: 14px 0 12px;
-  letter-spacing: -.02em;
+  font-stretch: 62%;
+  font-weight: 900;
+  font-size: clamp(3.6rem, 12vw, 8.5rem);
+  line-height: .82;
+  letter-spacing: -.01em;
+  margin: 0 0 28px;
 }
-h1 .b { color: var(--accent); }
-.lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 24px; max-width: 46em; }
-.facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.facts li {
-  font: 13px/1 var(--mono);
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
+h1 span { display: block; }
+.lede { font-size: 1.25rem; line-height: 1.5; margin: 0 0 28px; max-width: 34ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  display: inline-block;
+  font-weight: 700;
+  font-stretch: 110%;
+  text-decoration: none;
+  padding: 13px 20px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
 }
-.facts li strong { color: var(--danger); font-weight: 600; }
-nav.toc { margin: 24px 0 0; font-size: 14px; }
-nav.toc a { margin-right: 14px; white-space: nowrap; }
-section { padding: 36px 0 8px; }
-h2 { font-size: 1.5rem; margin: 0 0 14px; letter-spacing: -.01em; }
-h3 { font-size: 1.1rem; margin: 26px 0 8px; }
-p, li { max-width: 48em; }
-.callout {
-  border-left: 4px solid var(--danger);
-  background: var(--danger-soft);
-  padding: 14px 18px;
-  border-radius: 0 8px 8px 0;
-  margin: 18px 0;
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.primary:hover { background: var(--red-ink); border-color: var(--red-ink); color: #fff; }
+@media (prefers-color-scheme: dark) { .btn.primary:hover { background: #c22a20; border-color: #c22a20; } }
+.btn:not(.primary):hover { background: var(--ink); color: var(--paper); }
+
+.produce { position: relative; max-width: 460px; justify-self: center; width: 100%; }
+.produce svg { display: block; width: 100%; height: auto; }
+.fl-back { fill: var(--floret-dark); }
+.fl-mid { fill: var(--floret); }
+.fl-front { fill: var(--floret-light); }
+.stalk { fill: var(--stalk); }
+.stalk-shade { fill: var(--stalk-shade); }
+
+.sticker {
+  position: absolute;
+  right: 2%;
+  bottom: 14%;
+  width: 54%;
+  aspect-ratio: 1.45;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  line-height: 1;
+  transform: rotate(-9deg);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .18), inset 0 0 0 5px var(--red), inset 0 0 0 7px rgba(255, 255, 255, .85);
+  animation: slap .5s cubic-bezier(.2, 1.4, .4, 1) .35s both;
 }
-.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
-.callout.ok { border-color: var(--accent); background: var(--accent-soft); }
-.callout p { margin: 0; }
-.callout p + p { margin-top: 8px; }
-code { font: .9em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.sticker .plu { font-weight: 900; font-stretch: 125%; font-size: clamp(2rem, 6.4vw, 3.4rem); letter-spacing: -.02em; }
+.sticker .name { font-weight: 700; font-stretch: 125%; font-size: clamp(.85rem, 2.2vw, 1.15rem); margin-top: 4px; }
+.sticker .id { font-weight: 500; font-size: clamp(.62rem, 1.5vw, .78rem); margin-top: 7px; opacity: .92; }
+@keyframes slap {
+  from { transform: rotate(-32deg) scale(1.7); opacity: 0; }
+  60% { opacity: 1; }
+  to { transform: rotate(-9deg) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .sticker { animation: none; } }
+
+/* ---------- recall notice ---------- */
+.recall { background: var(--red); color: #fff; padding: 44px 0 0; }
+.recall h2 {
+  font-stretch: 62%;
+  font-weight: 900;
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  line-height: .9;
+  margin: 0 0 14px;
+}
+.recall .summary { font-size: 1.2rem; max-width: 52ch; margin: 0 0 32px; }
+.sheet {
+  background: var(--sheet);
+  color: var(--ink);
+  border-radius: 6px 6px 0 0;
+  padding: 28px 28px 8px;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, .06);
+}
+.sheet .note { max-width: 68ch; }
+.table-wrap { overflow-x: auto; margin: 0 0 20px; }
+table { border-collapse: collapse; width: 100%; font-size: 1rem; }
+caption { text-align: left; font-weight: 800; font-stretch: 85%; font-size: 1.35rem; padding-bottom: 10px; }
+th, td { text-align: left; padding: 11px 16px 11px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-weight: 700; font-size: .9rem; color: var(--ink-soft); border-bottom: 2px solid var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody th { font-weight: 500; }
+td.bad { color: var(--red-ink); font-weight: 600; white-space: nowrap; }
+td.fix { font-weight: 700; white-space: nowrap; }
+td.fix::before { content: "✓ "; color: var(--floret); }
+@media (prefers-color-scheme: dark) { td.fix::before { color: var(--floret-light); } }
+
+/* ---------- body ---------- */
+main section { padding: 64px 0 0; }
+main section:first-child { padding-top: 56px; }
+h2.sec {
+  font-stretch: 75%;
+  font-weight: 850;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1;
+  margin: 0 0 20px;
+}
+h3 { font-stretch: 90%; font-weight: 750; font-size: 1.3rem; margin: 32px 0 8px; }
+p, li { max-width: 68ch; }
+ul { padding-left: 1.2em; }
+li { margin-bottom: 8px; }
+li::marker { color: var(--floret); }
+
+.paths { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 0; }
+.paths li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 20px; padding: 18px 0; border-top: 1px solid var(--rule); max-width: none; margin: 0; }
+.paths li:last-child { border-bottom: 1px solid var(--rule); }
+.paths b { font-stretch: 85%; font-weight: 800; font-size: 1.15rem; line-height: 1.3; }
+.paths p { margin: 0; }
+
+.aside {
+  border-left: 5px solid var(--red);
+  padding: 4px 0 4px 18px;
+  margin: 24px 0;
+  max-width: 68ch;
+}
+.aside p { margin: 0; }
+.aside p + p { margin-top: 8px; }
+
+code { font: .88em var(--mono); background: var(--code); padding: 2px 5px; border-radius: 4px; }
 pre {
-  font: 13.5px/1.55 var(--mono);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
+  font: .85rem/1.6 var(--mono);
+  background: var(--code);
+  border-radius: 6px;
+  padding: 16px 18px;
   overflow-x: auto;
-  margin: 10px 0 18px;
+  margin: 10px 0 20px;
+  max-width: 80ch;
 }
 pre code { background: none; padding: 0; font-size: inherit; }
-pre .c { color: var(--muted); }
-.table-wrap { overflow-x: auto; margin: 12px 0 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
-table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
-th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
-th { font-weight: 600; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; }
-tr:last-child td { border-bottom: 0; }
-td.fix { color: var(--accent); font-family: var(--mono); font-weight: 600; white-space: nowrap; }
-td.bad { color: var(--danger); font-family: var(--mono); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 16px 0; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
-.card h3 { margin-top: 0; }
-.card p { margin: 0; font-size: 15px; color: var(--muted); }
-ol.timeline { list-style: none; padding: 0; margin: 12px 0; border-left: 2px solid var(--border); }
-ol.timeline li { padding: 0 0 14px 18px; position: relative; }
-ol.timeline li::before {
-  content: ""; position: absolute; left: -7px; top: 7px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--accent); border: 2px solid var(--bg);
+pre .c { color: var(--ink-soft); }
+
+ol.timeline { list-style: none; padding: 0; margin: 16px 0; max-width: 68ch; }
+ol.timeline li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--rule); margin: 0; }
+ol.timeline time { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------- naming ---------- */
+.naming { background: var(--ink); color: var(--paper); margin-top: 80px; padding: 64px 0; }
+.naming h2.sec { color: var(--paper); }
+.naming a:hover { color: #fff; }
+blockquote {
+  margin: 28px 0;
+  font-stretch: 80%;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.6vw, 2.25rem);
+  line-height: 1.15;
+  max-width: 30ch;
 }
-ol.timeline time { font: 600 13px var(--mono); color: var(--muted); display: block; }
-footer { margin-top: 48px; padding: 28px 0 48px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+blockquote p { margin: 0 0 14px; }
+blockquote footer { font-stretch: 100%; font-weight: 400; font-size: 1rem; }
+.naming .lead { font-size: 1.15rem; }
+@media (prefers-color-scheme: dark) {
+  .naming { background: #0d1f14; color: var(--ink); }
+  .naming h2.sec { color: var(--ink); }
+}
+
 .refs li { word-break: break-word; }
-blockquote { margin: 16px 0; padding: 14px 18px; border-left: 4px solid var(--accent); background: var(--surface); border-radius: 0 8px 8px 0; }
-blockquote p { margin: 0 0 6px; font-size: 1.05rem; }
-blockquote footer { color: var(--muted); font-size: 14px; }
+
+footer.site { padding: 40px 0 56px; color: var(--ink-soft); font-size: .95rem; }
+footer.site p { margin: 0 0 6px; }
+
+nav.toc { padding: 20px 0; border-bottom: 1px solid var(--rule); font-weight: 600; }
+nav.toc .wrap { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+nav.toc a { text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red); }
+
+@media (max-width: 760px) {
+  .hero { padding-top: 24px; }
+  .hero .wrap { grid-template-columns: 1fr; }
+  .produce { order: -1; max-width: 300px; }
+  .lede { max-width: none; }
+  .sheet { padding: 22px 16px 4px; margin: 0 -16px; border-radius: 0; }
+  .paths li, ol.timeline li { grid-template-columns: 1fr; gap: 4px; }
+  .sheet table, .sheet tbody, .sheet tr, .sheet th, .sheet td { display: block; }
+  .sheet thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .sheet tr { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .sheet tbody tr:last-child { border-bottom: 0; }
+  .sheet th, .sheet td { border: 0; padding: 2px 0; white-space: normal; }
+  .sheet tbody th { font-weight: 700; font-size: 1.05rem; }
+  .sheet td::before { content: attr(data-label) ": "; color: var(--ink-soft); font-weight: 500; }
+  .sheet td.fix::before { content: attr(data-label) ": ✓ "; }
+  .sheet caption { display: block; font-size: 1.2rem; }
+}
 </style>
 </head>
 <body>
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">CVE-2026-111497 · GHSA-9v8h-qqgm-4m35</div>
-    <h1><span class="b">Broccoli</span>2Shell</h1>
-    <p class="lede">An out-of-bounds write in Google's Brotli decoder. Any program that decompresses Brotli data an attacker controls can crash, leak memory, or run the attacker's code. Node.js and Python's <code>Brotli</code>/<code>brotlicffi</code> packages are confirmed affected. So is anything else that ships the C decoder from Brotli 1.0.3 through 1.2.0.</p>
-    <ul class="facts">
-      <li>CVSS 4.0: <strong>9.2 Critical</strong> (GHSA)</li>
-      <li>Node.js rating: <strong>High</strong></li>
-      <li>CWE-252 · CWE-787</li>
-      <li>Disclosed: 2026-10-21</li>
-    </ul>
-    <nav class="toc" aria-label="Contents">
-      <a href="#tldr">TL;DR</a>
-      <a href="#bug">The bug</a>
-      <a href="#node">Node.js</a>
-      <a href="#python">Python</a>
-      <a href="#other">Other software</a>
-      <a href="#check">Check</a>
-      <a href="#mitigate">Mitigate</a>
-      <a href="#exploit">Exploitation</a>
-      <a href="#timeline">Timeline</a>
-      <a href="#refs">References</a>
-    </nav>
+    <div>
+      <p class="cve">CVE-2026-111497</p>
+      <h1><span>Broccoli</span><span>2Shell</span></h1>
+      <p class="lede">A bug in the Brotli decoder lets crafted compressed data write past the end of a buffer. Node.js, Python and anything else built on Google's C decoder needs a patch.</p>
+      <div class="actions">
+        <a class="btn primary" href="#recall">See affected versions</a>
+        <a class="btn" href="#fix">How to fix it</a>
+      </div>
+    </div>
+    <div class="produce">
+      <svg viewBox="0 0 400 440" role="img" aria-label="A head of broccoli with a red produce sticker">
+        <path class="stalk" d="M168 250 C150 300 150 360 160 420 Q200 436 240 420 C250 360 250 300 232 250 Z"/>
+        <path class="stalk" d="M176 262 C150 250 118 236 96 214 L112 200 C134 220 160 236 186 244 Z"/>
+        <path class="stalk" d="M224 262 C250 250 282 236 304 214 L288 200 C266 220 240 236 214 244 Z"/>
+        <path class="stalk" d="M186 256 C182 236 176 214 160 196 L176 186 C192 206 198 230 200 252 Z"/>
+        <path class="stalk" d="M214 256 C218 236 224 214 240 196 L224 186 C208 206 202 230 200 252 Z"/>
+        <path class="stalk-shade" d="M214 270 C226 320 228 380 222 424 Q232 424 240 420 C250 360 250 300 232 250 Z"/>
+        <g class="fl-back"><circle cx="200" cy="118" r="78"/><circle cx="118" cy="150" r="62"/><circle cx="282" cy="150" r="62"/><circle cx="155" cy="92" r="52"/><circle cx="248" cy="90" r="54"/><circle cx="80" cy="205" r="46"/><circle cx="320" cy="205" r="46"/><circle cx="200" cy="182" r="66"/><circle cx="140" cy="205" r="54"/><circle cx="262" cy="205" r="54"/></g>
+<g class="fl-mid"><circle cx="259.9" cy="114.0" r="14.2"/><circle cx="213.1" cy="165.7" r="16.9"/><circle cx="174.1" cy="161.5" r="19.3"/><circle cx="174.9" cy="140.0" r="20.2"/><circle cx="188.0" cy="135.2" r="14.3"/><circle cx="169.5" cy="128.7" r="21.3"/><circle cx="230.4" cy="125.7" r="17.2"/><circle cx="159.6" cy="111.8" r="13.1"/><circle cx="95.5" cy="179.6" r="21.2"/><circle cx="97.9" cy="144.1" r="15.5"/><circle cx="111.7" cy="175.3" r="15.7"/><circle cx="100.1" cy="177.4" r="17.8"/><circle cx="123.0" cy="193.0" r="16.0"/><circle cx="117.7" cy="184.0" r="14.9"/><circle cx="102.9" cy="173.1" r="19.7"/><circle cx="145.9" cy="160.8" r="12.7"/><circle cx="161.7" cy="169.3" r="13.4"/><circle cx="306.7" cy="147.6" r="11.8"/><circle cx="321.0" cy="146.4" r="13.5"/><circle cx="285.5" cy="192.5" r="13.6"/><circle cx="249.1" cy="179.4" r="12.3"/><circle cx="279.3" cy="146.2" r="21.0"/><circle cx="285.9" cy="168.3" r="17.2"/><circle cx="323.2" cy="160.1" r="18.7"/><circle cx="185.7" cy="113.5" r="12.4"/><circle cx="155.4" cy="123.5" r="20.7"/><circle cx="138.8" cy="100.0" r="15.5"/><circle cx="139.4" cy="126.2" r="21.9"/><circle cx="258.8" cy="119.0" r="12.5"/><circle cx="215.8" cy="86.5" r="19.5"/><circle cx="231.4" cy="91.8" r="18.3"/><circle cx="271.3" cy="89.8" r="17.0"/><circle cx="258.7" cy="121.1" r="14.2"/><circle cx="251.1" cy="120.9" r="15.7"/><circle cx="281.8" cy="103.3" r="20.1"/><circle cx="93.2" cy="204.1" r="11.9"/><circle cx="88.3" cy="207.7" r="11.1"/><circle cx="91.0" cy="213.3" r="18.4"/><circle cx="81.1" cy="225.8" r="21.9"/><circle cx="53.3" cy="215.1" r="19.5"/><circle cx="61.1" cy="215.3" r="11.7"/><circle cx="84.1" cy="233.8" r="21.7"/><circle cx="100.4" cy="230.0" r="16.6"/><circle cx="332.1" cy="212.7" r="17.6"/><circle cx="324.9" cy="210.0" r="14.0"/><circle cx="330.1" cy="200.6" r="15.5"/><circle cx="319.1" cy="203.2" r="11.1"/><circle cx="310.5" cy="206.8" r="13.6"/><circle cx="288.6" cy="214.2" r="21.6"/><circle cx="306.4" cy="220.2" r="16.5"/><circle cx="160.2" cy="179.3" r="18.9"/><circle cx="165.9" cy="192.0" r="21.5"/><circle cx="172.7" cy="219.4" r="18.8"/><circle cx="206.9" cy="202.8" r="19.8"/><circle cx="240.1" cy="208.7" r="19.8"/><circle cx="153.8" cy="195.3" r="17.2"/><circle cx="169.6" cy="191.4" r="13.1"/><circle cx="141.4" cy="200.3" r="12.4"/><circle cx="134.9" cy="204.8" r="18.6"/><circle cx="165.4" cy="223.9" r="11.2"/><circle cx="157.2" cy="218.9" r="18.9"/><circle cx="261.9" cy="221.4" r="17.8"/><circle cx="230.0" cy="222.3" r="18.3"/><circle cx="222.8" cy="200.8" r="15.7"/><circle cx="281.6" cy="211.3" r="21.3"/></g>
+<g class="fl-front"><circle cx="150.2" cy="100.3" r="18.0"/><circle cx="212.5" cy="86.0" r="15.1"/><circle cx="186.4" cy="63.7" r="11.6"/><circle cx="182.8" cy="74.9" r="21.1"/><circle cx="207.7" cy="93.5" r="16.6"/><circle cx="245.9" cy="90.0" r="18.1"/><circle cx="147.3" cy="86.1" r="21.0"/><circle cx="150.1" cy="95.2" r="20.7"/><circle cx="212.3" cy="106.1" r="15.0"/><circle cx="143.8" cy="116.0" r="18.0"/><circle cx="82.9" cy="142.4" r="18.6"/><circle cx="147.0" cy="134.4" r="18.8"/><circle cx="129.9" cy="134.5" r="20.0"/><circle cx="105.3" cy="132.1" r="16.0"/><circle cx="266.6" cy="135.9" r="21.1"/><circle cx="317.0" cy="114.9" r="20.7"/><circle cx="318.2" cy="122.3" r="14.0"/><circle cx="280.1" cy="111.4" r="18.6"/><circle cx="250.9" cy="109.9" r="11.2"/><circle cx="299.4" cy="133.4" r="21.7"/><circle cx="244.5" cy="129.7" r="13.9"/><circle cx="148.4" cy="59.4" r="11.4"/><circle cx="140.0" cy="51.6" r="11.4"/><circle cx="183.7" cy="62.1" r="21.9"/><circle cx="189.9" cy="77.7" r="15.6"/><circle cx="178.6" cy="67.7" r="14.9"/><circle cx="129.2" cy="63.3" r="14.7"/><circle cx="150.8" cy="61.3" r="13.2"/><circle cx="128.8" cy="59.3" r="21.1"/><circle cx="276.3" cy="76.0" r="13.1"/><circle cx="215.9" cy="81.6" r="16.6"/><circle cx="249.2" cy="60.0" r="19.3"/><circle cx="283.5" cy="65.1" r="18.5"/><circle cx="254.6" cy="84.2" r="19.4"/><circle cx="54.8" cy="182.4" r="20.9"/><circle cx="51.7" cy="179.1" r="13.1"/><circle cx="303.4" cy="179.2" r="16.3"/><circle cx="348.8" cy="186.1" r="19.4"/><circle cx="329.4" cy="172.6" r="17.3"/><circle cx="178.6" cy="141.8" r="19.0"/><circle cx="236.3" cy="145.8" r="21.9"/><circle cx="231.2" cy="173.1" r="11.9"/><circle cx="196.1" cy="126.5" r="19.7"/><circle cx="170.6" cy="144.6" r="16.9"/><circle cx="219.3" cy="158.4" r="18.6"/><circle cx="178.5" cy="164.5" r="20.9"/><circle cx="213.4" cy="150.4" r="18.5"/><circle cx="150.6" cy="190.8" r="14.4"/><circle cx="154.4" cy="190.2" r="13.3"/><circle cx="174.2" cy="189.3" r="12.9"/><circle cx="152.6" cy="170.3" r="19.3"/><circle cx="170.7" cy="192.1" r="17.5"/><circle cx="146.2" cy="165.3" r="19.1"/><circle cx="128.8" cy="193.1" r="11.5"/><circle cx="124.5" cy="187.6" r="17.4"/><circle cx="235.2" cy="172.7" r="13.6"/><circle cx="270.2" cy="195.4" r="18.6"/><circle cx="266.7" cy="187.8" r="21.1"/><circle cx="287.6" cy="172.4" r="19.0"/><circle cx="295.5" cy="179.1" r="13.1"/><circle cx="258.8" cy="184.3" r="12.4"/><circle cx="302.0" cy="187.6" r="11.6"/><circle cx="290.9" cy="170.2" r="14.0"/></g>
+      </svg>
+      <div class="sticker" aria-hidden="true">
+        <span class="plu">4060</span>
+        <span class="name">Broccoli</span>
+        <span class="id">CVE-2026-111497</span>
+      </div>
+    </div>
   </div>
 </header>
 
+<section class="recall" id="recall" aria-labelledby="recall-h">
+  <div class="wrap">
+    <h2 id="recall-h">Recall notice</h2>
+    <p class="summary">Brotli decoder 1.0.3 through 1.2.0. An out-of-bounds write that can lead to a crash, a memory leak or remote code execution. Rated 9.2 Critical (CVSS 4.0) by GitHub, High by Node.js.</p>
+    <div class="sheet">
+      <div class="table-wrap">
+        <table>
+          <caption>Affected versions and their replacements</caption>
+          <thead><tr><th scope="col">Product</th><th scope="col">Affected</th><th scope="col">Fixed in</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Google Brotli (C library)</th><td class="bad" data-label="Affected">1.0.3 – 1.2.0</td><td class="fix" data-label="Fixed in">1.0.10, 1.1.1, 1.2.1</td></tr>
+            <tr><th scope="row">Node.js 26</th><td class="bad" data-label="Affected">below 26.12.1</td><td class="fix" data-label="Fixed in">26.12.1</td></tr>
+            <tr><th scope="row">Node.js 24</th><td class="bad" data-label="Affected">below 24.22.1</td><td class="fix" data-label="Fixed in">24.22.1</td></tr>
+            <tr><th scope="row">Node.js 22</th><td class="bad" data-label="Affected">below 22.23.4</td><td class="fix" data-label="Fixed in">22.23.4</td></tr>
+            <tr><th scope="row">Node.js 25, 23, 20 and older</th><td class="bad" data-label="Affected">all versions</td><td data-label="Fixed in">No fix. These lines are end of life, so move to 22, 24 or 26.</td></tr>
+            <tr><th scope="row">Python <code>Brotli</code></th><td class="bad" data-label="Affected">1.0.3 – 1.2.0</td><td class="fix" data-label="Fixed in">1.2.1</td></tr>
+            <tr><th scope="row">Python <code>brotlicffi</code></th><td class="bad" data-label="Affected">1.0.3 – 1.2.0.x</td><td class="fix" data-label="Fixed in">1.2.1.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Installing the update isn't enough. A running process keeps the old decoder until it restarts, and a container keeps it until you rebuild the image on a patched base and redeploy.</p>
+    </div>
+  </div>
+</section>
+
+<nav class="toc" aria-label="Contents">
+  <div class="wrap">
+    <a href="#exposure">Who's exposed</a>
+    <a href="#bug">The bug</a>
+    <a href="#python">Python</a>
+    <a href="#other">Other software</a>
+    <a href="#check">Check</a>
+    <a href="#fix">Fix</a>
+    <a href="#exploit">Exploitation</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#name">Why broccoli</a>
+    <a href="#refs">Sources</a>
+  </div>
+</nav>
+
 <main class="wrap">
 
-<section id="tldr">
-  <h2>TL;DR</h2>
-  <div class="callout">
-    <p><strong>Upgrade now if you decompress Brotli from anywhere you don't control.</strong> That includes HTTP responses: <code>fetch()</code> in Node.js and <code>requests</code>/<code>urllib3</code> in Python decode <code>Content-Encoding: br</code> responses automatically.</p>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Component</th><th>Vulnerable</th><th>Fixed in</th></tr></thead>
-      <tbody>
-        <tr><td>Google Brotli (C library)</td><td class="bad">1.0.3 – 1.2.0</td><td class="fix">1.0.10 · 1.1.1 · 1.2.1</td></tr>
-        <tr><td>Node.js 26.x</td><td class="bad">&lt; 26.12.1</td><td class="fix">26.12.1</td></tr>
-        <tr><td>Node.js 24.x</td><td class="bad">&lt; 24.22.1</td><td class="fix">24.22.1</td></tr>
-        <tr><td>Node.js 22.x</td><td class="bad">&lt; 22.23.4</td><td class="fix">22.23.4</td></tr>
-        <tr><td>Node.js 25.x, 23.x, 20.x and older</td><td class="bad">End of life</td><td>No fix. Move to 22, 24 or 26.</td></tr>
-        <tr><td>PyPI <code>Brotli</code></td><td class="bad">1.0.3 – 1.2.0</td><td class="fix">1.2.1</td></tr>
-        <tr><td>PyPI <code>brotlicffi</code></td><td class="bad">1.0.3 – 1.2.0.x</td><td class="fix">1.2.1.0</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>Upgrading on disk is not enough. A running process keeps the old decoder until it restarts. A container keeps it until you rebuild the image on a patched base and redeploy it.</p>
+<section id="exposure">
+  <h2 class="sec">Who's exposed</h2>
+  <p class="measure">You're at risk if your code, or any library it uses, decompresses Brotli data that someone else controls. That happens in more places than you'd think, because HTTP clients decompress Brotli responses on their own.</p>
+  <ul class="paths">
+    <li><b>Your app fetches a URL</b><p>Node's built-in <code>fetch()</code> decodes <code>Content-Encoding: br</code> responses automatically. So do Python's <code>requests</code>/<code>urllib3</code> and <code>aiohttp</code> whenever a Brotli package is installed. Any server you talk to can send the payload, whether through webhooks, link previews, crawlers or "import from URL" features.</p></li>
+    <li><b>Your app accepts uploads or request bodies</b><p>Express 5.0.0–5.3.0 and body-parser 2.0.0–2.3.0 inflate Brotli request bodies in parsers such as <code>raw()</code> and <code>json()</code>. Python frameworks and middleware that decode <code>br</code> bodies are exposed in the same way. A bare <code>node:http</code> server doesn't decode bodies by itself.</p></li>
+    <li><b>Your app calls the decoder directly</b><p>This means <code>zlib.brotliDecompress*()</code>, <code>createBrotliDecompress()</code>, <code>brotli.decompress()</code>, and any library that uses them on archives, caches or queue messages.</p></li>
+  </ul>
+  <p class="measure">Express and body-parser don't contain the bug. They're just paths to it, so upgrading them won't help. Node.js bundles its own copy of Brotli, which means the system <code>libbrotli</code> doesn't matter there. Only the Node.js version does.</p>
 </section>
 
 <section id="bug">
-  <h2>The bug</h2>
-  <p>A Brotli stream is split into blocks, and the decoder changes block types as it reads them. Before the fix, <code>DecodeBlockTypeAndLength()</code> in <code>c/dec/decode.c</code> returned a plain boolean. That meant callers could not tell a malformed stream from one that just needed more input. On the fast path, the return value was ignored altogether.</p>
-  <p>A crafted stream can request a block switch that cannot happen. The decoder took that as "need more input", so the streaming decoder kept adding attacker bytes to an eight-byte internal buffer and wrote past its end. The overwrite corrupts nearby decoder state, which is how a decompression error can become memory disclosure or code execution.</p>
-  <p>The upstream fix (google/brotli commit <code>0ed4268</code>, plus <code>50a9b70</code>, <code>b418fa8</code> and <code>da98063</code>) makes the decoder return a hard format error, <code>BROTLI_DECODER_ERROR_FORMAT_BLOCK_SWITCH</code> (−17), and pass it back to the caller.</p>
-</section>
-
-<section id="node">
-  <h2>Node.js</h2>
-  <p>Node.js bundles its own copy of the Brotli decoder, so your operating system's <code>libbrotli</code> doesn't matter here. Only the Node.js version does. Node.js runs the decoder when:</p>
-  <div class="grid">
-    <div class="card">
-      <h3>Outbound: <code>fetch()</code></h3>
-      <p>The built-in <code>fetch()</code> (undici) decodes responses that arrive with <code>Content-Encoding: br</code>. Any server your app talks to can deliver the payload. That includes webhooks, link previews, scrapers and anything built around "fetch this URL".</p>
-    </div>
-    <div class="card">
-      <h3>Inbound: request bodies</h3>
-      <p>Express 5.0.0–5.3.0 and body-parser 2.0.0–2.3.0 inflate Brotli request bodies in their parsers (for example <code>raw()</code> and <code>json()</code>). A bare <code>node:http</code> server does not decode bodies on its own.</p>
-    </div>
-    <div class="card">
-      <h3>Direct: <code>node:zlib</code></h3>
-      <p><code>zlib.brotliDecompress*()</code>, <code>createBrotliDecompress()</code> and any library that calls them on uploads, archives, caches or message queues.</p>
-    </div>
-  </div>
-  <p>Express and body-parser don't contain the bug. They only give attackers a way to reach it. Upgrading them won't help. Upgrading Node.js will.</p>
-  <p>The same release (2026-10-21) fixed nine other CVEs, including three more rated High in TLS and DNS. See the <a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases">Node.js advisory</a>.</p>
+  <h2 class="sec">The bug</h2>
+  <p>A Brotli stream is split into blocks, and the decoder switches between block types as it reads them. Before the fix, <code>DecodeBlockTypeAndLength()</code> in <code>c/dec/decode.c</code> returned a plain boolean, so callers couldn't tell a malformed stream from one that just needed more input. On the fast path, the decoder ignored the return value altogether.</p>
+  <p>A crafted stream can request a block switch that can't happen. The decoder took that to mean "need more input" and kept adding attacker bytes to an eight-byte internal buffer, writing past its end. The overwrite corrupts nearby decoder state. That's how a malformed stream can turn into a memory leak or code execution.</p>
+  <p>The upstream fix is google/brotli commit <code>0ed4268</code>, along with <code>50a9b70</code>, <code>b418fa8</code> and <code>da98063</code>. It returns a hard format error, <code>BROTLI_DECODER_ERROR_FORMAT_BLOCK_SWITCH</code> (−17), to the caller. The bug is tracked as CWE-252 (unchecked return value) and CWE-787 (out-of-bounds write).</p>
 </section>
 
 <section id="python">
-  <h2>Python</h2>
-  <p>The PyPI packages <code>Brotli</code> and <code>brotlicffi</code> compile the same C decoder. <strong>Your code doesn't have to import them.</strong> If either one is installed, common HTTP clients use it automatically:</p>
+  <h2 class="sec">Python</h2>
+  <p>The PyPI packages <code>Brotli</code> and <code>brotlicffi</code> compile the same C decoder. Your code doesn't need to import them to be exposed. If either one is installed, these clients use it on their own:</p>
   <ul>
-    <li><strong>urllib3, and therefore requests</strong>, sends <code>Accept-Encoding: br</code> and decodes Brotli responses whenever either package is installed.</li>
-    <li><strong>aiohttp</strong> uses Brotli if it's installed.</li>
+    <li><strong>urllib3</strong>, and therefore <strong>requests</strong>, advertises <code>Accept-Encoding: br</code> and decodes Brotli responses.</li>
+    <li><strong>aiohttp</strong> uses Brotli when it's installed.</li>
     <li><strong>httpx</strong> uses it through the <code>httpx[brotli]</code> extra.</li>
-    <li><strong>Scrapy</strong> and other crawlers. Some versions pull Brotli in as a dependency.</li>
-    <li><strong>Web frameworks or middleware</strong> that decode <code>Content-Encoding: br</code> request bodies.</li>
+    <li><strong>Scrapy</strong> and other crawlers. Some versions install Brotli as a dependency.</li>
   </ul>
-  <div class="callout warn">
-    <p>Scanners may report nothing for a while. When this was published, pip-audit, Dependabot and Safety didn't reliably flag the vulnerable PyPI versions, because the CVE record names the upstream Google repo rather than the PyPI packages. GHSA now lists both packages (PYSEC-2026-4322, PYSEC-2026-4323). Check manually anyway.</p>
+  <div class="aside">
+    <p>Don't wait for your scanner. When this was disclosed, pip-audit, Dependabot and Safety didn't reliably flag the affected PyPI versions. The CVE record named the upstream Google repository, not the PyPI packages. GitHub's advisory now lists both packages (PYSEC-2026-4322 and PYSEC-2026-4323), but check by hand anyway.</p>
   </div>
-  <p>If your Brotli bindings come from your Linux distribution (for example <code>python3-brotli</code>) rather than from PyPI, the fix will come through your distribution's security updates.</p>
+  <p>If your bindings come from your Linux distribution (for example <code>python3-brotli</code>) and not from PyPI, the fix arrives through your distribution's security updates.</p>
 </section>
 
 <section id="other">
-  <h2>Everything else</h2>
-  <p>The bug is in the reference C decoder, not in Node.js or Python. Anything that ships or links that decoder from Brotli 1.0.3 through 1.2.0 is a candidate, even if no advisory names it yet:</p>
+  <h2 class="sec">Other software</h2>
+  <p>The bug is in Google's reference C decoder, not in Node.js or Python. Anything that ships or links Brotli 1.0.3 through 1.2.0 may be affected, even before an advisory names it.</p>
   <ul>
-    <li><strong>The system library</strong> (<code>libbrotlidec</code>, packaged as <code>libbrotli1</code>, <code>brotli</code> and similar). Programs that link it dynamically are fixed when your distribution ships a patched package and you restart them. Statically linked or vendored copies need their own rebuild.</li>
-    <li><strong>Language bindings that wrap the C code</strong>, such as Java JNI wrappers, PHP and Ruby extensions, and Go cgo bindings. Check each one for a release that bundles 1.0.10, 1.1.1 or 1.2.1.</li>
-    <li><strong>Proxies, CDNs, HTTP clients and archive tools</strong> that decode <code>br</code> content using the C library.</li>
+    <li><strong>The system library.</strong> It's called <code>libbrotlidec</code>, packaged as <code>libbrotli1</code>, <code>brotli</code> and similar. Programs that link it dynamically are fixed once your distribution ships a patched package and you restart them. Statically linked or vendored copies need their own rebuild.</li>
+    <li><strong>Bindings that wrap the C code.</strong> This covers Java JNI wrappers, PHP and Ruby extensions, and Go cgo bindings. Look for a release that bundles 1.0.10, 1.1.1 or 1.2.1.</li>
+    <li><strong>Proxies, CDNs, HTTP clients and archive tools</strong> that decode <code>br</code> content with the C library.</li>
   </ul>
-  <div class="callout warn">
-    <p><strong>Not yet confirmed:</strong> independent ports and translations of the decoder, such as pure Go, Rust, Java, Kotlin and JavaScript implementations. No public analysis says whether they carry the same logic error. Watch the vendor advisories, and treat the C-backed builds as affected until a fix is shipped.</p>
+  <div class="aside">
+    <p>Not yet confirmed: independent ports and translations of the decoder, written in Go, Rust, Java, Kotlin or JavaScript. No public analysis says whether they share the same logic error. Watch their advisories. Until then, assume any build backed by the C library is affected.</p>
   </div>
 </section>
 
 <section id="check">
-  <h2>Am I affected?</h2>
+  <h2 class="sec">Check your versions</h2>
   <h3>Node.js</h3>
 <pre><code>node --version
-<span class="c"># vulnerable if below 22.23.4 / 24.22.1 / 26.12.1, or on any EOL line</span>
+<span class="c"># affected if below 22.23.4, 24.22.1 or 26.12.1, or on an end-of-life line</span>
+
+<span class="c"># the Brotli version bundled into this Node binary</span>
+node -p "process.versions.brotli"
 
 <span class="c"># inside a container image</span>
-docker run --rm --entrypoint node &lt;image&gt; --version
-
-<span class="c"># the Brotli version actually bundled into this Node binary</span>
-node -p "process.versions.brotli"</code></pre>
+docker run --rm --entrypoint node &lt;image&gt; --version</code></pre>
   <h3>Python</h3>
 <pre><code>pip show Brotli brotlicffi
-python -c "import brotli; print(brotli.__version__)"
 
 <span class="c"># what pulls it in</span>
 pipdeptree -r -p Brotli
@@ -266,95 +454,92 @@ grep -i brotli poetry.lock uv.lock requirements*.txt Pipfile.lock 2&gt;/dev/null
 <span class="c"># inside a container image</span>
 docker run --rm --entrypoint pip &lt;image&gt; show Brotli brotlicffi</code></pre>
   <h3>System library</h3>
-<pre><code><span class="c"># Debian / Ubuntu</span>
-dpkg -l | grep -i brotli
-<span class="c"># RHEL / Fedora</span>
-rpm -qa | grep -i brotli
-<span class="c"># Alpine</span>
-apk info -v | grep -i brotli
-<span class="c"># which running processes have it mapped</span>
+<pre><code>dpkg -l | grep -i brotli          <span class="c"># Debian, Ubuntu</span>
+rpm -qa | grep -i brotli          <span class="c"># RHEL, Fedora</span>
+apk info -v | grep -i brotli      <span class="c"># Alpine</span>
+
+<span class="c"># running processes that have the decoder loaded</span>
 sudo grep -l brotlidec /proc/*/maps 2&gt;/dev/null</code></pre>
-  <p>Check every place that runs code: production, staging, CI runners, build images, serverless runtimes and developer laptops. Fix the services that fetch URLs you don't control, or that accept <code>Content-Encoding: br</code> bodies, first.</p>
+  <p>Check everywhere code runs: production, staging, CI runners, build images, serverless runtimes and developer laptops. Patch first any service that fetches URLs you don't control or accepts <code>Content-Encoding: br</code> bodies.</p>
 </section>
 
-<section id="mitigate">
-  <h2>Fix &amp; mitigate</h2>
-  <h3>1. Upgrade (the actual fix)</h3>
-<pre><code><span class="c"># Node.js — via your version manager, base image or package source</span>
-nvm install 24.22.1          <span class="c"># or 22.23.4 / 26.12.1</span>
-<span class="c"># Dockerfile</span>
-FROM node:24.22.1-slim
+<section id="fix">
+  <h2 class="sec">Fix it</h2>
+  <h3>Upgrade</h3>
+<pre><code><span class="c"># Node.js: through your version manager, base image or package source</span>
+nvm install 24.22.1               <span class="c"># or 22.23.4 / 26.12.1</span>
+FROM node:24.22.1-slim            <span class="c"># Dockerfile</span>
 
 <span class="c"># Python</span>
 pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
-<span class="c"># then update the constraint and regenerate poetry.lock / uv.lock / requirements.txt</span></code></pre>
-  <p>Then restart every process, rebuild every image and redeploy. Bump pinned versions in lockfiles, so the next build doesn't install the old version again.</p>
-
-  <h3>2. If you can't upgrade yet</h3>
+<span class="c"># then raise the constraint and regenerate poetry.lock / uv.lock / requirements.txt</span></code></pre>
+  <p>Then restart every process, rebuild every image and redeploy. Update the pins in your lockfiles, or the next build will reinstall the vulnerable version.</p>
+  <h3>If you can't upgrade yet</h3>
   <ul>
-    <li><strong>Python:</strong> uninstall <code>Brotli</code> and <code>brotlicffi</code>. urllib3, requests and aiohttp fall back to gzip and deflate. Also remove extras such as <code>httpx[brotli]</code>, or the next install will bring the package back.</li>
-    <li><strong>Inbound:</strong> reject requests that carry <code>Content-Encoding: br</code> at your proxy, load balancer or WAF, before they reach the app. Several providers, including Vercel, deployed WAF rules for this inbound path on the day of disclosure.</li>
-    <li><strong>Outbound:</strong> removing <code>br</code> from <code>Accept-Encoding</code> helps less than it seems, because a malicious server can send Brotli anyway. A WAF in front of your app does nothing for responses your app fetches. Only the runtime or library upgrade protects that path.</li>
+    <li><strong>Python:</strong> uninstall <code>Brotli</code> and <code>brotlicffi</code>. urllib3, requests and aiohttp will fall back to gzip and deflate. Remove extras such as <code>httpx[brotli]</code> too, or the next install brings the package back.</li>
+    <li><strong>Inbound:</strong> reject <code>Content-Encoding: br</code> request bodies at your proxy, load balancer or WAF. Several providers, including Vercel, deployed WAF rules for this on disclosure day.</li>
+    <li><strong>Outbound:</strong> removing <code>br</code> from <code>Accept-Encoding</code> helps less than you'd hope, because a malicious server can send Brotli anyway. A WAF doesn't see responses your app fetches. Only the runtime or library upgrade covers that path.</li>
   </ul>
-  <div class="callout ok">
+  <div class="aside">
     <p>Node.js has published no workaround. For Node.js, upgrading the runtime is the only complete fix.</p>
   </div>
 </section>
 
 <section id="exploit">
-  <h2>Exploitation status</h2>
+  <h2 class="sec">Exploitation status</h2>
   <ul>
-    <li><strong>Imperva Red Team</strong> ("Node2Shell") reported running attacker-supplied code on the official, unmodified Node.js 24.22.0 Linux arm64 image. The payload arrived both as a fetched response and as an Express request body. It took several attempts, and Imperva hasn't released the exploit code.</li>
-    <li>A <strong>public proof-of-concept</strong> on GitHub (2026-10-22) reportedly reaches code execution only on a deliberately weakened build. On standard builds it causes a crash and a limited memory read.</li>
-    <li>For the Python packages, researchers confirmed the bug with AddressSanitizer: 1.2.0 accepted a crafted ~23 MB stream, and 1.2.1 rejected it with error −17. They didn't try to build an exploit.</li>
-    <li>As of 2026-10-22, no one had reported attacks using this flaw. Public PoCs make that likely to change, so patch now.</li>
+    <li><strong>Imperva Red Team</strong> ran attacker-supplied code on the official, unmodified Node.js 24.22.0 Linux arm64 image. They delivered the payload both as a fetched response and as an Express request body. It took several attempts, and they haven't released the exploit.</li>
+    <li>A <strong>public proof of concept</strong> appeared on GitHub on 2026-10-22. It reportedly reaches code execution only on a deliberately weakened build. On standard builds it causes a crash and a limited memory read.</li>
+    <li>For <strong>Python</strong>, researchers confirmed the bug with AddressSanitizer. Version 1.2.0 accepted a crafted stream of about 23 MB, and 1.2.1 rejected it with error −17. They didn't attempt an exploit.</li>
+    <li>As of 2026-10-22, no attacks in the wild had been reported. With public PoCs out, expect that to change.</li>
   </ul>
 </section>
 
 <section id="timeline">
-  <h2>Timeline</h2>
+  <h2 class="sec">Timeline</h2>
   <ol class="timeline">
-    <li><time>2026-02</time>The fix is first committed to the Brotli source, according to OpenSourceMalware's analysis.</li>
-    <li><time>2026-10-21</time>Node.js releases 22.23.4, 24.22.1 and 26.12.1. Google releases Brotli 1.0.10, 1.1.1 and 1.2.1.</li>
-    <li><time>2026-10-22</time>NVD publishes CVE-2026-111497. GHSA-9v8h-qqgm-4m35 goes live, Brotli 1.2.1 reaches PyPI, Imperva publishes its "Node2Shell" research, and a public PoC appears.</li>
-    <li><time>2026-10-23</time>brotlicffi 1.2.1.0 reaches PyPI. Researchers publish the Python impact analysis, and GHSA is updated to list the PyPI packages.</li>
+    <li><time datetime="2026-02">Feb 2026</time><span>The fix first lands in the Brotli source, per OpenSourceMalware's analysis.</span></li>
+    <li><time datetime="2026-10-21">21 Oct 2026</time><span>Node.js releases 22.23.4, 24.22.1 and 26.12.1. Google releases Brotli 1.0.10, 1.1.1 and 1.2.1.</span></li>
+    <li><time datetime="2026-10-22">22 Oct 2026</time><span>NVD publishes CVE-2026-111497 and GitHub publishes GHSA-9v8h-qqgm-4m35. Brotli 1.2.1 reaches PyPI, Imperva publishes its research, and a public PoC appears.</span></li>
+    <li><time datetime="2026-10-23">23 Oct 2026</time><span>brotlicffi 1.2.1.0 reaches PyPI. Researchers publish the Python impact analysis, and GitHub adds the PyPI packages to its advisory.</span></li>
   </ol>
-</section>
-
-<section id="name">
-  <h2>Why "Broccoli"?</h2>
-  <p>Imperva's research called it "Node2Shell", but the bug is in Brotli itself and reaches well beyond Node.js. Security researcher Juliano Rizzo <a href="https://x.com/julianor/status/2113746351817216068">proposed a better name</a>:</p>
-  <blockquote cite="https://x.com/julianor/status/2113746351817216068">
-    <p>IMHO, the Brotli bug (think zlib 20 years ago) is a bigger deal than PHP2Shell […] Node2Shell is a terrible name. I'm calling it Broccoli.</p>
-    <footer>— Juliano Rizzo (@julianor)</footer>
-  </blockquote>
-</section>
-
-<section id="credits">
-  <h2>Credits</h2>
-  <p>Reported to Node.js by OpenAI Codex Security (Khai Tran and Sylvie Mayer). Fixed in Node.js by Matteo Collina and Antoine du Hamel. Independent exploitation research by the Imperva Red Team (Ron Masas). Python impact analysis by OpenSourceMalware and Aikido.</p>
-</section>
-
-<section id="refs">
-  <h2>References</h2>
-  <ul class="refs">
-    <li><a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases">Node.js — October 2026 security releases</a></li>
-    <li><a href="https://github.com/advisories/GHSA-9v8h-qqgm-4m35">GitHub Advisory GHSA-9v8h-qqgm-4m35</a></li>
-    <li><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-111497">NVD — CVE-2026-111497</a></li>
-    <li><a href="https://www.cve.org/CVERecord?id=CVE-2026-111497">CVE.org record</a></li>
-    <li><a href="https://github.com/google/brotli/releases">google/brotli releases (1.0.10 / 1.1.1 / 1.2.1)</a></li>
-    <li><a href="https://www.imperva.com/blog/node2shell-from-brotli-data-to-remote-code-execution/">Imperva — Node2Shell: From Brotli Data to Remote Code Execution</a></li>
-    <li><a href="https://opensourcemalware.com/blog/node2shell-affects-python">OpenSourceMalware — Python packages vulnerable to Node2Shell</a></li>
-    <li><a href="https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497">Aikido — Python packages are also vulnerable</a></li>
-    <li><a href="https://vercel.com/kb/bulletin/node-js-security-advisory">Vercel — Node.js security advisory</a></li>
-  </ul>
 </section>
 
 </main>
 
-<footer>
+<section class="naming" id="name" aria-labelledby="name-h">
   <div class="wrap">
-    <p>Last updated 2026-10-24. This is an independent informational page, not affiliated with Google, the Node.js project or the Python Software Foundation. The vendor advisories linked above are authoritative.</p>
+    <h2 class="sec" id="name-h">Why broccoli</h2>
+    <p class="lead measure">Lately every serious bug comes with a <em>something</em>2shell domain, and people race to register them. Some of those sites have ended up taking credit for work done by other people. This bug was first called "Node2Shell", but the flaw is in Brotli itself and reaches well beyond Node.js. Juliano Rizzo <a href="https://x.com/julianor/status/2113746351817216068">had a better idea</a>:</p>
+    <blockquote cite="https://x.com/julianor/status/2113746351817216068">
+      <p>“The Brotli bug (think zlib 20 years ago) is a bigger deal than PHP2Shell […] Node2Shell is a terrible name. I'm calling it Broccoli.”</p>
+      <footer>Juliano Rizzo, @julianor</footer>
+    </blockquote>
+    <p class="measure">To be clear: we didn't find this bug. We just registered a domain named after a vegetable. Credit goes to the people who did the work. OpenAI Codex Security (Khai Tran and Sylvie Mayer) reported it to Node.js. Matteo Collina and Antoine du Hamel fixed it in Node.js. The Imperva Red Team (Ron Masas) did the exploitation research. OpenSourceMalware and Aikido analyzed the Python impact.</p>
+  </div>
+</section>
+
+<div class="wrap">
+<section id="refs" style="padding-top:56px">
+  <h2 class="sec">Sources</h2>
+  <ul class="refs">
+    <li><a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases">Node.js: October 2026 security releases</a></li>
+    <li><a href="https://github.com/advisories/GHSA-9v8h-qqgm-4m35">GitHub Advisory GHSA-9v8h-qqgm-4m35</a></li>
+    <li><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-111497">NVD: CVE-2026-111497</a></li>
+    <li><a href="https://www.cve.org/CVERecord?id=CVE-2026-111497">CVE.org record</a></li>
+    <li><a href="https://github.com/google/brotli/releases">google/brotli releases 1.0.10, 1.1.1 and 1.2.1</a></li>
+    <li><a href="https://www.imperva.com/blog/node2shell-from-brotli-data-to-remote-code-execution/">Imperva: From Brotli data to remote code execution</a></li>
+    <li><a href="https://opensourcemalware.com/blog/node2shell-affects-python">OpenSourceMalware: Python packages are affected too</a></li>
+    <li><a href="https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497">Aikido: Python packages are also vulnerable</a></li>
+    <li><a href="https://vercel.com/kb/bulletin/node-js-security-advisory">Vercel: Node.js security advisory</a></li>
+  </ul>
+</section>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Last updated 24 October 2026. This page is independent and not affiliated with Google, the Node.js project or the Python Software Foundation. When in doubt, the vendor advisories above are authoritative.</p>
+    <p>Set in <a href="/fonts/OFL.txt">Archivo</a>. No trackers, no cookies, no third-party requests.</p>
   </div>
 </footer>
 
