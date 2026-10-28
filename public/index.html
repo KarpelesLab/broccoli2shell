@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="A head of broccoli with a red produce sticker reading 9.2 Critical, CVE-2026-111497, next to the title Broccoli2Shell">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-10-24T00:00:00Z">
-<meta property="article:modified_time" content="2026-10-27T00:00:00Z">
+<meta property="article:modified_time" content="2026-10-28T00:00:00Z">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Broccoli2Shell: the Brotli decoder bug (CVE-2026-111497)">
 <meta name="twitter:description" content="An out-of-bounds write in Google's Brotli decoder reaches Node.js, Python and more. Affected versions, checks and fixes.">
@@ -44,7 +44,7 @@
   "url": "https://broccoli2shell.com/",
   "image": "https://broccoli2shell.com/og.png",
   "datePublished": "2026-10-24",
-  "dateModified": "2026-10-27",
+  "dateModified": "2026-10-28",
   "inLanguage": "en",
   "keywords": ["CVE-2026-111497", "GHSA-9v8h-qqgm-4m35", "Brotli", "Node.js", "Python", "brotlicffi"],
   "about": [
@@ -347,7 +347,7 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
 <section class="recall" id="recall" aria-labelledby="recall-h">
   <div class="wrap">
     <h2 id="recall-h">Recall notice</h2>
-    <p class="summary">Brotli decoder 1.0.3 through 1.2.0. An out-of-bounds write that can lead to a crash, a memory leak or remote code execution. Rated 9.2 Critical (CVSS 4.0) by GitHub, High by Node.js.</p>
+    <p class="summary">Brotli decoder 1.0.3 through 1.2.0. An out-of-bounds write that can lead to a crash, a memory leak or remote code execution. Rated 9.2 Critical (CVSS 4.0) by GitHub, High by Node.js. Exploited in the wild: CISA added it to its Known Exploited Vulnerabilities catalog on 27 October.</p>
     <div class="sheet">
       <div class="table-wrap stack">
         <table>
@@ -433,12 +433,12 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
   <p class="measure"><strong>Palo Alto Networks PAN-OS</strong> 11.2, 12.1 and 12.2 on PA-Series and VM-Series firewalls are affected when TLS/SSL decryption and Brotli inspection are both enabled. Then the firewall decodes Brotli traffic passing through it on its dataplane, so any web server that a user behind the firewall talks to can send the payload, and the target is the firewall itself. Palo Alto rates it 9.2 Critical. PAN-OS 11.1 and 10.2 aren't affected, because Brotli inspection only arrived in 11.2.4. Panorama and the management interface aren't affected either.</p>
   <div class="table-wrap stack">
     <table>
-      <caption>PAN-OS hotfixes, as of 27 October</caption>
+      <caption>PAN-OS hotfixes, as of 28 October</caption>
       <thead><tr><th scope="col">Branch</th><th scope="col">Available</th><th scope="col">Due</th></tr></thead>
       <tbody>
         <tr><th scope="row">12.2</th><td class="fix" data-label="Available">12.2.4-h1</td><td data-label="Due">None</td></tr>
         <tr><th scope="row">12.1</th><td class="fix" data-label="Available">12.1.7-h11</td><td data-label="Due">12.1.4-h13 on 29 Oct, 12.1.10-h3 on 30 Oct</td></tr>
-        <tr><th scope="row">11.2</th><td class="fix" data-label="Available">11.2.10-h17</td><td data-label="Due">11.2.13-h4 on 27 Oct, 11.2.16-h1 on 28 Oct, 11.2.7-h23 on 29 Oct, 11.2.4-h23 on 30 Oct</td></tr>
+        <tr><th scope="row">11.2</th><td class="fix" data-label="Available">11.2.16-h1, 11.2.13-h4, 11.2.10-h17, 11.2.7-h23</td><td data-label="Due">11.2.4-h23 on 30 Oct</td></tr>
       </tbody>
     </table>
   </div>
@@ -452,16 +452,15 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
 
 <section id="vendored">
   <h2 class="sec">Projects that bundle their own copy</h2>
-  <p class="measure">Many projects ship a private copy of the C decoder instead of using your system's library. A distribution update doesn't fix those: each project has to update its copy. We searched GitHub for vendored copies and read their headers, and last rechecked them on 27 October 2026. A copy is patched if it includes the new <code>BLOCK_SWITCH</code> error code.</p>
+  <p class="measure">Many projects ship a private copy of the C decoder instead of using your system's library. A distribution update doesn't fix those: each project has to update its copy. We searched GitHub for vendored copies and read their headers, and last rechecked them on 28 October 2026. A copy is patched if it includes the new <code>BLOCK_SWITCH</code> error code.</p>
   <div class="table-wrap stack">
     <table>
-      <caption>Not fixed yet, as of 27 October</caption>
+      <caption>Not fixed yet, as of 28 October</caption>
       <thead><tr><th scope="col">Project</th><th scope="col">Bundled copy</th><th scope="col">Untrusted input it decodes</th></tr></thead>
       <tbody>
         <tr><th scope="row"><a href="https://github.com/duckdb/duckdb">DuckDB</a></th><td class="bad" data-label="Bundled copy">unpatched</td><td data-label="Decodes">Brotli-compressed Parquet files. A fix is in progress in <a href="https://github.com/duckdb/duckdb/pull/27791">PR #27791</a>.</td></tr>
-        <tr><th scope="row"><a href="https://github.com/apache/arrow">Apache Arrow</a> (bundled build)</th><td class="bad" data-label="Bundled copy">1.0.9</td><td data-label="Decodes">Brotli-compressed Parquet files. Tracked in <a href="https://github.com/apache/arrow/issues/55166">issue #55166</a>. <a href="https://github.com/apache/arrow/pull/55167">PR #55167</a>, which moves to Brotli 1.0.10, has been approved. It's waiting on fixes to wheel builds.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/apache/arrow">Apache Arrow</a> (bundled build)</th><td class="bad" data-label="Bundled copy">1.0.9</td><td data-label="Decodes">Brotli-compressed Parquet files. Tracked in <a href="https://github.com/apache/arrow/issues/55165">issue #55165</a>. <a href="https://github.com/apache/arrow/pull/55167">PR #55167</a>, which moves to a patched Brotli, has been approved, and the remaining wheel build failures are unrelated. Maintainers plan to prepare a release once it's merged.</td></tr>
         <tr><th scope="row"><a href="https://github.com/microsoft/v8-jsi">v8-jsi</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">The same paths as Node.js, because it bundles Node.js</td></tr>
-        <tr><th scope="row"><a href="https://github.com/mcmilk/7-Zip-zstd">7-Zip-zstd</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Archives and <code>.br</code> files a user opens. Tracked in <a href="https://github.com/mcmilk/7-Zip-zstd/issues/579">issue #579</a>.</td></tr>
         <tr><th scope="row"><a href="https://github.com/p7zip-project/p7zip">p7zip</a></th><td class="bad" data-label="Bundled copy">1.0.9</td><td data-label="Decodes">Archives and <code>.br</code> files a user opens</td></tr>
         <tr><th scope="row"><a href="https://github.com/tianocore/edk2">EDK II</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Compressed firmware sections. Tracked in <a href="https://github.com/tianocore/edk2/issues/13378">issue #13378</a>.</td></tr>
         <tr><th scope="row"><a href="https://github.com/google/woff2">woff2</a> (Makefile build)</th><td class="bad" data-label="Bundled copy">1.0.3</td><td data-label="Decodes">WOFF2 fonts passed to <code>woff2_decompress</code>. The CMake build links the system library instead. Tracked in <a href="https://github.com/google/woff2/issues/207">issue #207</a>. A fix has been proposed in <a href="https://github.com/google/woff2/pull/208">PR #208</a>.</td></tr>
@@ -481,13 +480,14 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
         <tr><th scope="row"><a href="https://docs.varnish-software.com/varnish-enterprise/vmods/brotli/">Varnish Enterprise</a></th><td class="fix" data-label="Fixed in">6.0.18r7</td><td data-label="Details">Closed source, but it bundles its own Brotli for the brotli VMOD, which decodes backend responses. A check of the official Docker images found a patched copy in 6.0.18r7 and a few releases before it. We don't know the first fixed release, and Varnish Software hasn't published an advisory.</td></tr>
         <tr><th scope="row"><a href="https://github.com/ArtifexSoftware/mupdf">MuPDF</a></th><td class="fix" data-label="Fixed in">1.28.0</td><td data-label="Details">Its Brotli fork picked up the upstream fix in April 2026, before disclosure, so every 1.28.x release is patched. The 1.27.x releases still bundle the affected decoder.</td></tr>
         <tr><th scope="row"><a href="https://github.com/ClickHouse/ClickHouse">ClickHouse</a></th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">Updated to Brotli 1.2.1 in <a href="https://github.com/ClickHouse/ClickHouse/pull/127419">PR #127419</a> on 25 October and backported to 26.10, 26.9, 26.8 and 26.3 LTS. Not in a release yet: the latest, 26.10.2.103, came out before the fix.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/mcmilk/7-Zip-zstd">7-Zip-zstd</a></th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">Updated to Brotli 1.2.1 in <a href="https://github.com/mcmilk/7-Zip-zstd/pull/581">PR #581</a> on 27 October (<a href="https://github.com/mcmilk/7-Zip-zstd/issues/579">issue #579</a>). Not in a release yet: the master branch is being prepared as 7-Zip ZS 26.05, and the latest release, 26.02 R2, still bundles 1.2.0.</td></tr>
         <tr><th scope="row"><a href="https://github.com/oracle/graaljs">GraalJS (graal-nodejs)</a></th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">The fix was merged on 22 October. Not in a release yet: GraalVM ships security updates quarterly, and the latest release, 25.4.4.1.1, came out before the fix.</td></tr>
         <tr><th scope="row"><a href="https://github.com/ydb-platform/ydb">YDB</a></th><td class="pending" data-label="Fixed in">main branch</td><td data-label="Details">Patched with the upstream fix in <a href="https://github.com/ydb-platform/ydb/commit/343f6bef21ac594c7993792b0006ddd8e6e0d183">343f6be</a> on 23 October. Not in a release yet.</td></tr>
         <tr><th scope="row"><a href="https://github.com/libjxl/libjxl">libjxl</a></th><td class="pending" data-label="Fixed in">main branch</td><td data-label="Details">Updated to Brotli 1.2.1 in <a href="https://github.com/libjxl/libjxl/pull/5062">PR #5062</a> on 24 October. Not in a release yet: the latest, v0.12.0, came out before the fix.</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="measure"><strong>Fixed before this list was made:</strong> Node.js, Bun, Chromium, Firefox, brotlicffi, ngx_brotli, Brotli4j, SumatraPDF, Ghostscript, CatBoost and YTsaurus, as well as Gentoo, Solus and VMware Photon packages.</p>
+  <p class="measure"><strong>Fixed before this list was made:</strong> Node.js, Bun, Chromium, Firefox, Envoy (every supported line pins a patched Brotli commit), brotlicffi, ngx_brotli, Brotli4j, SumatraPDF, Ghostscript, CatBoost and YTsaurus, as well as Gentoo, Solus and VMware Photon packages.</p>
   <p class="measure">This list isn't complete. GitHub's code search skips submodules and some very large repositories, and private or vendored-at-build-time copies don't show up at all. A project listed here may not reach the decoder in every configuration. If you maintain one of these projects, updating to 1.0.10, 1.1.1 or 1.2.1 (or cherry-picking commit <code>0ed4268</code>) fixes it.</p>
 </section>
 
@@ -551,7 +551,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><strong>Imperva Red Team</strong> ran attacker-supplied code on the official, unmodified Node.js 24.22.0 Linux arm64 image. They delivered the payload both as a fetched response and as an Express request body. It took several attempts, and they haven't released the exploit.</li>
     <li>A <strong>public proof of concept</strong> appeared on GitHub on 2026-10-22. It reportedly reaches code execution only on a deliberately weakened build. On standard builds it causes a crash and a limited memory read.</li>
     <li>For <strong>Python</strong>, researchers confirmed the bug with AddressSanitizer. Version 1.2.0 accepted a crafted stream of about 23 MB, and 1.2.1 rejected it with error −17. They didn't attempt an exploit.</li>
-    <li>As of 2026-10-22, no attacks in the wild had been reported. With public PoCs out, expect that to change.</li>
+    <li><strong>Attacks in the wild.</strong> On 26 October, ELLIO reported that its sensors had recorded exploit traffic carrying the public PoC, from an IP address previously seen in mass-exploitation and scanning campaigns. CISA added CVE-2026-111497 to its <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">Known Exploited Vulnerabilities catalog</a> on 27 October, with a 10 November deadline for US federal agencies.</li>
   </ul>
 </section>
 
@@ -564,6 +564,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><time datetime="2026-10-23">23 Oct 2026</time><span>brotlicffi 1.2.1.0 reaches PyPI. Researchers publish the Python impact analysis, and GitHub adds the PyPI packages to its advisory.</span></li>
     <li><time datetime="2026-10-25">25 Oct 2026</time><span>Microsoft releases .NET 8.0.33, 9.0.22 and 10.0.14.</span></li>
     <li><time datetime="2026-10-26">26 Oct 2026</time><span>Palo Alto Networks confirms PAN-OS firewalls are affected and starts shipping hotfixes.</span></li>
+    <li><time datetime="2026-10-27">27 Oct 2026</time><span>CISA adds CVE-2026-111497 to its Known Exploited Vulnerabilities catalog, after ELLIO reports exploit traffic in the wild.</span></li>
   </ol>
 </section>
 
@@ -593,6 +594,8 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><a href="https://www.imperva.com/blog/node2shell-from-brotli-data-to-remote-code-execution/">Imperva: From Brotli data to remote code execution</a></li>
     <li><a href="https://opensourcemalware.com/blog/node2shell-affects-python">OpenSourceMalware: Python packages are affected too</a></li>
     <li><a href="https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497">Aikido: Python packages are also vulnerable</a></li>
+    <li><a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">CISA: Known Exploited Vulnerabilities catalog</a></li>
+    <li><a href="https://www.helpnetsecurity.com/2026/10/27/node2shell-broccoli2shell-vulnerability-cve-2026-111497/">Help Net Security: Brotli bug reaches far beyond Node.js</a></li>
     <li><a href="https://security.paloaltonetworks.com/CVE-2026-111497">Palo Alto Networks: CVE-2026-111497 impact on PAN-OS</a></li>
     <li><a href="https://github.com/dotnet/announcements/issues/494">Microsoft: .NET security advisory for CVE-2026-111497</a></li>
     <li><a href="https://vercel.com/kb/bulletin/node-js-security-advisory">Vercel: Node.js security advisory</a></li>
@@ -602,7 +605,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
 
 <footer class="site">
   <div class="wrap">
-    <p>Last updated 27 October 2026. This page is independent and not affiliated with Google, the Node.js project or the Python Software Foundation. When in doubt, the vendor advisories above are authoritative.</p>
+    <p>Last updated 28 October 2026. This page is independent and not affiliated with Google, the Node.js project or the Python Software Foundation. When in doubt, the vendor advisories above are authoritative.</p>
     <p>Set in <a href="/fonts/OFL.txt">Archivo</a>. No trackers, no cookies, no third-party requests.</p>
   </div>
 </footer>
