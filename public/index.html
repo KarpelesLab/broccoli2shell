@@ -359,6 +359,7 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
             <tr><th scope="row">Node.js 24</th><td class="bad" data-label="Affected">below 24.22.1</td><td class="fix" data-label="Fixed in">24.22.1</td></tr>
             <tr><th scope="row">Node.js 22</th><td class="bad" data-label="Affected">below 22.23.4</td><td class="fix" data-label="Fixed in">22.23.4</td></tr>
             <tr><th scope="row">Node.js 25, 23, 20 and older</th><td class="bad" data-label="Affected">all versions</td><td data-label="Fixed in">No fix. These lines are end of life, so move to 22, 24 or 26.</td></tr>
+            <tr><th scope="row">Apple iOS, iPadOS, macOS, watchOS, visionOS (<a href="#apple">details</a>)</th><td class="bad" data-label="Affected">below the 9 November updates</td><td class="fix" data-label="Fixed in">27.2.1, iOS and macOS 26.7.3, macOS 15.8.3</td></tr>
             <tr><th scope="row">Palo Alto PAN-OS 11.2, 12.1, 12.2 (<a href="#appliances">details</a>)</th><td class="bad" data-label="Affected">11.2.4 and later, with Brotli inspection on</td><td class="fix" data-label="Fixed in">Hotfixes for every branch, released 26–29 Oct</td></tr>
             <tr><th scope="row">Python <code>Brotli</code></th><td class="bad" data-label="Affected">1.0.3 – 1.2.0</td><td class="fix" data-label="Fixed in">1.2.1</td></tr>
             <tr><th scope="row">Python <code>brotlicffi</code></th><td class="bad" data-label="Affected">1.0.3 – 1.2.0.x</td><td class="fix" data-label="Fixed in">1.2.1.0</td></tr>
@@ -443,6 +444,8 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
     </table>
   </div>
   <p class="measure">Watch out for 11.2.10-h16: it fixes a separate PHP issue but not this one. Until you can install a hotfix, check with <code>show system setting brotli</code> and turn inspection off with <code>set system setting brotli-encoding disable</code>, or untick "Allow Brotli Encoding" under Device &gt; Setup &gt; Content-ID. Prisma Cloud's Application Security Transporter Client is affected too, and is fixed in 0.2.9. See <a href="https://security.paloaltonetworks.com/CVE-2026-111497">Palo Alto's advisory</a>.</p>
+  <h3 id="apple">Apple devices</h3>
+  <p class="measure">Apple's operating systems ship their own Brotli, and Apple patched it on 9 November 2026. The fix is in iOS and iPadOS 27.2.1 and 26.7.3, macOS Golden Gate 27.2.1, macOS Tahoe 26.7.3, macOS Sequoia 15.8.3, watchOS 27.2.1 and visionOS 27.2.1. Apple describes it as an out-of-bounds write where "processing maliciously crafted input may lead to memory corruption", and doesn't say which apps or services reach the decoder or report any attacks on its platforms. The advisories for iOS 18.7.12 and watchOS 26.6.1, released the same day, don't list the bug. See <a href="https://support.apple.com/en-us/149715">Apple's iOS 27.2.1 advisory</a> and its <a href="https://support.apple.com/en-us/100100">list of security releases</a>.</p>
   <h3 id="ffmpeg">FFmpeg, through JPEG XL images</h3>
   <p class="measure">Since FFmpeg 8.1 (March 2026), its libjxl-based JPEG XL decoder reads Exif metadata and asks libjxl to decompress Brotli-compressed metadata boxes. A crafted <code>.jxl</code> image therefore reaches the Brotli decoder in any FFmpeg built with <code>--enable-libjxl</code>. That covers thumbnailers, media servers and upload pipelines that run FFmpeg on files users send. FFmpeg doesn't contain Brotli itself. The fix is in whichever libbrotli libjxl was linked against. Distribution packages are fixed by your system's Brotli update. Static builds carry their own copy, so check the build's Brotli version. <a href="https://github.com/BtbN/FFmpeg-Builds">BtbN's builds</a> have pinned a patched Brotli commit since 27 September.</p>
   <div class="aside">
@@ -565,6 +568,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><time datetime="2026-10-25">25 Oct 2026</time><span>Microsoft releases .NET 8.0.33, 9.0.22 and 10.0.14.</span></li>
     <li><time datetime="2026-10-26">26 Oct 2026</time><span>Palo Alto Networks confirms PAN-OS firewalls are affected and starts shipping hotfixes.</span></li>
     <li><time datetime="2026-10-27">27 Oct 2026</time><span>CISA adds CVE-2026-111497 to its Known Exploited Vulnerabilities catalog, after ELLIO reports exploit traffic in the wild.</span></li>
+    <li><time datetime="2026-11-09">9 Nov 2026</time><span>Apple fixes the bug in iOS, iPadOS, macOS, watchOS and visionOS.</span></li>
   </ol>
 </section>
 
@@ -597,6 +601,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
     <li><a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">CISA: Known Exploited Vulnerabilities catalog</a></li>
     <li><a href="https://www.helpnetsecurity.com/2026/10/27/node2shell-broccoli2shell-vulnerability-cve-2026-111497/">Help Net Security: Brotli bug reaches far beyond Node.js</a></li>
     <li><a href="https://security.paloaltonetworks.com/CVE-2026-111497">Palo Alto Networks: CVE-2026-111497 impact on PAN-OS</a></li>
+    <li><a href="https://support.apple.com/en-us/100100">Apple: security releases of 9 November 2026</a></li>
     <li><a href="https://github.com/dotnet/announcements/issues/494">Microsoft: .NET security advisory for CVE-2026-111497</a></li>
     <li><a href="https://vercel.com/kb/bulletin/node-js-security-advisory">Vercel: Node.js security advisory</a></li>
   </ul>
