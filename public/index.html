@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="A head of broccoli with a red produce sticker reading 9.2 Critical, CVE-2026-111497, next to the title Broccoli2Shell">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-10-24T00:00:00Z">
-<meta property="article:modified_time" content="2026-11-11T00:00:00Z">
+<meta property="article:modified_time" content="2026-11-13T00:00:00Z">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Broccoli2Shell: the Brotli decoder bug (CVE-2026-111497)">
 <meta name="twitter:description" content="An out-of-bounds write in Google's Brotli decoder reaches Node.js, Python and more. Affected versions, checks and fixes.">
@@ -44,7 +44,7 @@
   "url": "https://broccoli2shell.com/",
   "image": "https://broccoli2shell.com/og.png",
   "datePublished": "2026-10-24",
-  "dateModified": "2026-11-11",
+  "dateModified": "2026-11-13",
   "inLanguage": "en",
   "keywords": ["CVE-2026-111497", "GHSA-9v8h-qqgm-4m35", "Brotli", "Node.js", "Python", "brotlicffi"],
   "about": [
@@ -455,14 +455,13 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
 
 <section id="vendored">
   <h2 class="sec">Projects that bundle their own copy</h2>
-  <p class="measure">Many projects ship a private copy of the C decoder instead of using your system's library. A distribution update doesn't fix those: each project has to update its copy. We searched GitHub for vendored copies and read their headers, and last rechecked them on 11 November 2026. A copy is patched if it includes the new <code>BLOCK_SWITCH</code> error code.</p>
+  <p class="measure">Many projects ship a private copy of the C decoder instead of using your system's library. A distribution update doesn't fix those: each project has to update its copy. We searched GitHub for vendored copies and read their headers, and last rechecked them on 13 November 2026. A copy is patched if it includes the new <code>BLOCK_SWITCH</code> error code.</p>
   <div class="table-wrap stack">
     <table>
-      <caption>Not fixed yet, as of 11 November</caption>
+      <caption>Not fixed yet, as of 13 November</caption>
       <thead><tr><th scope="col">Project</th><th scope="col">Bundled copy</th><th scope="col">Untrusted input it decodes</th></tr></thead>
       <tbody>
         <tr><th scope="row"><a href="https://github.com/p7zip-project/p7zip">p7zip</a></th><td class="bad" data-label="Bundled copy">1.0.9</td><td data-label="Decodes">Archives and <code>.br</code> files a user opens</td></tr>
-        <tr><th scope="row"><a href="https://github.com/tianocore/edk2">EDK II</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Compressed firmware sections. Tracked in <a href="https://github.com/tianocore/edk2/issues/13378">issue #13378</a>. <a href="https://github.com/tianocore/edk2/pull/13461">PR #13461</a>, which moves to Brotli 1.2.1, has been approved but not merged yet.</td></tr>
         <tr><th scope="row"><a href="https://github.com/ydb-platform/ydb">YDB</a></th><td class="bad" data-label="Bundled copy">1.2.0</td><td data-label="Decodes">Brotli-compressed data it receives. The main branch was patched on 23 October, but <a href="https://github.com/ydb-platform/ydb/commit/df531bf41b2702fc809600a6c5e06139a03d0012">df531bf</a> on 2 November replaced the copy with stock Brotli 1.2.0, which brought the bug back. The stable branches still carry the fix, but the latest public release, 26.2.1.14, came out before it. Tracked in <a href="https://github.com/ydb-platform/ydb/issues/58842">issue #58842</a>.</td></tr>
       </tbody>
     </table>
@@ -483,10 +482,11 @@ nav.toc a:hover { text-decoration: underline; text-decoration-color: var(--red);
         <tr><th scope="row"><a href="https://github.com/mcmilk/7-Zip-zstd">7-Zip-zstd</a></th><td class="fix" data-label="Fixed in">26.05 R1</td><td data-label="Details">Bundles Brotli 1.2.1. Released on 2 November (<a href="https://github.com/mcmilk/7-Zip-zstd/issues/579">issue #579</a>).</td></tr>
         <tr><th scope="row"><a href="https://github.com/oracle/graaljs">GraalJS (graal-nodejs)</a></th><td class="fix" data-label="Fixed in">25.5.5.0.3</td><td data-label="Details">Released on 3 November, as part of GraalVM's quarterly security update.</td></tr>
         <tr><th scope="row"><a href="https://github.com/microsoft/v8-jsi">v8-jsi</a></th><td class="fix" data-label="Fixed in">Microsoft.JavaScript.V8 26.0.1</td><td data-label="Details">Picked up the patched decoder with its update to Node.js 26.13.0 on 31 October (<a href="https://github.com/microsoft/v8-jsi/pull/266">PR #266</a>). Every <code>Microsoft.JavaScript.V8</code> tag since 26.0.1 (1 November) includes it. The older <code>ReactNative.V8Jsi.Windows</code> packages, up to 0.79.9, still bundle the affected decoder.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/libjxl/libjxl">libjxl</a></th><td class="fix" data-label="Fixed in">0.13.0</td><td data-label="Details">Bundles Brotli 1.2.1 (<a href="https://github.com/libjxl/libjxl/pull/5062">PR #5062</a>). Released on 11 November. Version 0.12.0 and earlier still bundle the affected decoder.</td></tr>
         <tr><th scope="row"><a href="https://github.com/ClickHouse/ClickHouse">ClickHouse</a></th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">Updated to Brotli 1.2.1 in <a href="https://github.com/ClickHouse/ClickHouse/pull/127419">PR #127419</a> on 25 October and backported to 26.10, 26.9, 26.8 and 26.3 LTS. Not in a release yet: the latest, 26.10.2.103, came out before the fix.</td></tr>
         <tr><th scope="row"><a href="https://github.com/duckdb/duckdb">DuckDB</a></th><td class="pending" data-label="Fixed in">main branch</td><td data-label="Details">Merged <a href="https://github.com/duckdb/duckdb/pull/27791">PR #27791</a> on 3 November. Not in a release yet: the latest, v2.0.0, came out before the fix.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/tianocore/edk2">EDK II</a></th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">Merged <a href="https://github.com/tianocore/edk2/pull/13461">PR #13461</a>, which moves to Brotli 1.2.1, on 11 November (<a href="https://github.com/tianocore/edk2/issues/13378">issue #13378</a>). Not in a stable tag yet: the latest, edk2-stable202608, came out before the fix.</td></tr>
         <tr><th scope="row"><a href="https://github.com/google/woff2">woff2</a> (Makefile build)</th><td class="pending" data-label="Fixed in">master branch</td><td data-label="Details">Updated to Brotli 1.2.1 on 28 October (<a href="https://github.com/google/woff2/issues/207">issue #207</a>). woff2 rarely tags releases, so build from master. The CMake build links the system library instead.</td></tr>
-        <tr><th scope="row"><a href="https://github.com/libjxl/libjxl">libjxl</a></th><td class="pending" data-label="Fixed in">main branch</td><td data-label="Details">Updated to Brotli 1.2.1 in <a href="https://github.com/libjxl/libjxl/pull/5062">PR #5062</a> on 24 October. Not in a release yet: the latest, v0.12.0, came out before the fix.</td></tr>
       </tbody>
     </table>
   </div>
@@ -610,7 +610,7 @@ pip install -U "Brotli&gt;=1.2.1" "brotlicffi&gt;=1.2.1.0"
 
 <footer class="site">
   <div class="wrap">
-    <p>Last updated 11 November 2026. This page is independent and not affiliated with Google, the Node.js project or the Python Software Foundation. When in doubt, the vendor advisories above are authoritative.</p>
+    <p>Last updated 13 November 2026. This page is independent and not affiliated with Google, the Node.js project or the Python Software Foundation. When in doubt, the vendor advisories above are authoritative.</p>
     <p>Set in <a href="/fonts/OFL.txt">Archivo</a>. No trackers, no cookies, no third-party requests.</p>
   </div>
 </footer>
